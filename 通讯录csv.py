@@ -22,7 +22,7 @@ from googleapiclient.discovery import build
 # 复制打印的结果到excel中，使用"；"分列后，xlsx改名为csv，从以下网页导入到谷歌联系人中
 # https://contacts.google.com/?hl=zh-CN&tab=CC
 
-oauth_token = r'C:\Users\wangxiao\不参与同步文件\code\tools-python\谷歌桌面客户端1凭据.json'
+oauth_token = r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json'
 from dotenv import load_dotenv
 
 load_dotenv()  # 从.env文件加载配置
@@ -131,9 +131,12 @@ class GoogleCalendar:
     def get_calendar_service(self):
         creds = None
         # 步骤1: 检查是否已有谷歌短期凭据.json (之前认证过1次)
-        if os.path.exists('谷歌短期凭据.json'):
+        if os.path.exists(r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json'):
             print("✅ 找到现有的 谷歌短期凭据.json 文件")
-            creds = Credentials.from_authorized_user_file('谷歌短期凭据.json', ['https://www.googleapis.com/auth/calendar'])
+            creds = Credentials.from_authorized_user_file(
+                r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json',
+                ['https://www.googleapis.com/auth/calendar']
+            )
             print("已加载现有凭据")
         else:
             print("❌ 未找到 谷歌短期凭据.json 文件，需要重新认证")
@@ -146,13 +149,13 @@ class GoogleCalendar:
             else:
                 print("🚀 开始OAuth 2.0认证流程...")
                 # 检查谷歌桌面客户端1凭据.json是否存在
-                if not os.path.exists('谷歌桌面客户端1凭据.json'):
+                if not os.path.exists(r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json'):
                     print("❌ 错误: 未找到 谷歌桌面客户端1凭据.json 文件")
                     print("请从Google Cloud Console下载OAuth 2.0凭据文件")
                     sys.exit(-1)
                 print("✅ 找到 谷歌桌面客户端1凭据.json 文件，开始认证...")
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    '谷歌桌面客户端1凭据.json',
+                    r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json',
                     ['https://www.googleapis.com/auth/calendar']
                 )
                 print("🌐 正在打开浏览器进行Google账号认证...")
@@ -160,7 +163,7 @@ class GoogleCalendar:
                 print("✅ 认证成功！")
             # 步骤3: 保存令牌供下次使用
             print("💾 保存认证令牌到 谷歌短期凭据.json...")
-            with open('谷歌短期凭据.json', 'w') as token:
+            with open(r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json', 'w') as token:
                 token.write(creds.to_json())
             print("✅ 谷歌短期凭据.json 文件已生成")
         # 步骤4: 创建API服务
