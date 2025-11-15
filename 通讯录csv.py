@@ -15,14 +15,15 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
-# C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv
+# C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # 我的项目：https://console.cloud.google.com/welcome?project=shawywang
 # 打开网页登录谷歌账号被拦截后，点高级，强行允许访问
-# 联系人.txt注意：邮箱最多2个，电话最多3个，生日和纪念日仅支持农历
+# 联系人.txt注意：邮箱最多5个（通过csv导入的时候，谷歌的隐形限制），电话最多9个（目前没发现上限），生日和纪念日仅支持农历
 # 复制打印的结果到excel中，使用"；"分列后，xlsx改名为csv，从以下网页导入到谷歌联系人中
 # https://contacts.google.com/?hl=zh-CN&tab=CC
 
 oauth_token = r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json'
+oauth_token2 = r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json'
 from dotenv import load_dotenv
 
 load_dotenv()  # 从.env文件加载配置
@@ -36,13 +37,30 @@ os.environ['https_proxy'] = PROXY_URL
 file_path = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\我的文档\个人\联系人.txt"
 out_csv_file = r"C:\Users\wangxiao\Downloads\contact.csv"
 google_csv_title: List[str] = [
-    "First Name", "Middle Name", "Last Name", "Phonetic First Name",
-    "Phonetic Middle Name", "Phonetic Last Name", "Name Prefix", "Name Suffix",
-    "Nickname", "File As", "Organization Name", "Organization Title",
-    "Organization Department", "Birthday", "Notes", "Photo",
-    "Labels", "E-mail 1 - Label", "E-mail 1 - Value", "E-mail 2 - Label",
-    "E-mail 2 - Value", "Phone 1 - Label", "Phone 1 - Value", "Phone 2 - Label",
-    "Phone 2 - Value", "Phone 3 - Label", "Phone 3 - Value"
+    "Name Prefix", "First Name", "Middle Name", "Last Name", "Name Suffix",
+    "Phonetic First Name", "Phonetic Middle Name", "Phonetic Last Name",
+    "Nickname", "File As",
+    "E-mail 1 - Label", "E-mail 1 - Value",
+    "E-mail 2 - Label", "E-mail 2 - Value",
+    "E-mail 3 - Label", "E-mail 3 - Value",
+    "E-mail 4 - Label", "E-mail 4 - Value",
+    "E-mail 5 - Label", "E-mail 5 - Value",
+    "Phone 1 - Label", "Phone 1 - Value",
+    "Phone 2 - Label", "Phone 2 - Value",
+    "Phone 3 - Label", "Phone 3 - Value",
+    "Phone 4 - Label", "Phone 4 - Value",
+    "Phone 5 - Label", "Phone 5 - Value",
+    "Phone 6 - Label", "Phone 6 - Value",
+    "Phone 7 - Label", "Phone 7 - Value",
+    "Phone 8 - Label", "Phone 8 - Value",
+    "Phone 9 - Label", "Phone 9 - Value",
+    "Address 1 - Label", "Address 1 - Country", "Address 1 - Street",
+    "Address 1 - Extended Address", "Address 1 - City",
+    "Address 1 - Region", "Address 1 - Postal Code", "Address 1 - PO Box",
+    "Organization Name", "Organization Title", "Organization Department", "Birthday",
+    "Event 1 - Label", "Event 1 - Value", "Relation 1 - Label", "Relation 1 - Value",
+    "Website 1 - Label", "Website 1 - Value", "Custom Field 1 - Label", "Custom Field 1 - Value",
+    "Notes", "Labels",
 ]
 
 month_map: Dict[str, int] = {
@@ -85,33 +103,71 @@ def phone_num(num: str) -> str:
 
 class GoogleCSV:
     def __init__(self, name: str):
+        self.name_prefix = ""
         self.first_name = name
         self.middle_name = ""
         self.last_name = ""
+        self.name_suffix = ""
         self.phonetic_first_name = ""
         self.phonetic_middle_name = ""
         self.phonetic_last_name = ""
-        self.name_prefix = ""
-        self.name_suffix = ""
         self.nickname = ""
         self.file_as = ""
+
+        self.email_1_label = "住宅"
+        self.email_2_label = "公司"
+        self.email_3_label = "其他1"
+        self.email_4_label = "其他2"
+        self.email_5_label = "其他3"
+        self.email_1_value = ""
+        self.email_2_value = ""
+        self.email_3_value = ""
+        self.email_4_value = ""
+        self.email_5_value = ""
+
+        self.phone_1_label = "主要"
+        self.phone_2_label = "手机"
+        self.phone_3_label = "工作"
+        self.phone_4_label = "住宅"
+        self.phone_5_label = "其它1"
+        self.phone_6_label = "其它2"
+        self.phone_7_label = "其它3"
+        self.phone_8_label = "其它4"
+        self.phone_9_label = "其它5"
+        self.phone_1_value = ""
+        self.phone_2_value = ""
+        self.phone_3_value = ""
+        self.phone_4_value = ""
+        self.phone_5_value = ""
+        self.phone_6_value = ""
+        self.phone_7_value = ""
+        self.phone_8_value = ""
+        self.phone_9_value = ""
+
+        self.address_1_label = ""
+        self.address_1_country = ""
+        self.address_1_street = ""
+        self.address_1_extended = ""
+        self.address_1_city = ""
+        self.address_1_region = ""
+        self.address_1_postal_code = ""
+        self.address_1_pobox = ""
         self.organization_name = ""
         self.organization_title = ""
         self.organization_department = ""
         self.birthday = ""
+
+        self.event_1_label = ""
+        self.event_1_value = ""
+        self.relation_1_label = ""
+        self.relation_1_value = ""
+        self.website_1_label = ""
+        self.website_1_value = ""
+        self.custom_field_1_label = ""
+        self.custom_field_1_value = ""
+
         self.notes = ""
-        self.photo = ""
         self.labels = ""
-        self.email_1_label = "住宅"
-        self.email_1_value = ""
-        self.email_2_label = "公司"
-        self.email_2_value = ""
-        self.phone_1_label = "主要"
-        self.phone_1_value = ""
-        self.phone_2_label = "手机"
-        self.phone_2_value = ""
-        self.phone_3_label = "其它"
-        self.phone_3_value = ""
 
 
 class Person:
@@ -131,10 +187,10 @@ class GoogleCalendar:
     def get_calendar_service(self):
         creds = None
         # 步骤1: 检查是否已有谷歌短期凭据.json (之前认证过1次)
-        if os.path.exists(r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json'):
+        if os.path.exists(oauth_token2):
             print("✅ 找到现有的 谷歌短期凭据.json 文件")
             creds = Credentials.from_authorized_user_file(
-                r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json',
+                oauth_token2,
                 ['https://www.googleapis.com/auth/calendar']
             )
             print("已加载现有凭据")
@@ -149,13 +205,13 @@ class GoogleCalendar:
             else:
                 print("🚀 开始OAuth 2.0认证流程...")
                 # 检查谷歌桌面客户端1凭据.json是否存在
-                if not os.path.exists(r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json'):
+                if not os.path.exists(oauth_token):
                     print("❌ 错误: 未找到 谷歌桌面客户端1凭据.json 文件")
                     print("请从Google Cloud Console下载OAuth 2.0凭据文件")
                     sys.exit(-1)
                 print("✅ 找到 谷歌桌面客户端1凭据.json 文件，开始认证...")
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json',
+                    oauth_token,
                     ['https://www.googleapis.com/auth/calendar']
                 )
                 print("🌐 正在打开浏览器进行Google账号认证...")
@@ -163,7 +219,7 @@ class GoogleCalendar:
                 print("✅ 认证成功！")
             # 步骤3: 保存令牌供下次使用
             print("💾 保存认证令牌到 谷歌短期凭据.json...")
-            with open(r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json', 'w') as token:
+            with open(oauth_token2, 'w') as token:
                 token.write(creds.to_json())
             print("✅ 谷歌短期凭据.json 文件已生成")
         # 步骤4: 创建API服务
@@ -404,32 +460,53 @@ class Handle:
 
         return persons
 
+    def set_email(self, emails: List[str], csv: GoogleCSV):
+        if len(emails) == 0:
+            pass
+        if len(emails) > 5:
+            print(f"{emails} 邮箱个数超限，退出！")
+            sys.exit(-1)
+        if len(emails) >= 1:
+            csv.email_1_value = emails[0]
+        if len(emails) >= 2:
+            csv.email_2_value = emails[1]
+        if len(emails) >= 3:
+            csv.email_3_value = emails[2]
+        if len(emails) >= 4:
+            csv.email_4_value = emails[3]
+        if len(emails) == 5:
+            csv.email_5_value = emails[4]
+
+    def set_phone(self, nums: List[str], csv: GoogleCSV):
+        if len(nums) == 0:
+            pass
+        if len(nums) > 9:
+            print(f"{nums} 电话信息有误，退出！")
+            sys.exit(-1)
+        if len(nums) >= 1:
+            csv.phone_1_value = phone_num(nums[0])
+        if len(nums) >= 2:
+            csv.phone_2_value = phone_num(nums[1])
+        if len(nums) >= 3:
+            csv.phone_3_value = phone_num(nums[2])
+        if len(nums) >= 4:
+            csv.phone_4_value = phone_num(nums[3])
+        if len(nums) >= 5:
+            csv.phone_5_value = phone_num(nums[4])
+        if len(nums) >= 6:
+            csv.phone_6_value = phone_num(nums[5])
+        if len(nums) >= 7:
+            csv.phone_7_value = phone_num(nums[6])
+        if len(nums) >= 8:
+            csv.phone_8_value = phone_num(nums[7])
+        if len(nums) == 9:
+            csv.phone_9_value = phone_num(nums[8])
+
     def show_csv(self, persons: List[Person]):
         for per in persons:
             csv = GoogleCSV(per.name)
-            if len(per.nums) == 1:
-                csv.phone_1_value = phone_num(per.nums[0])
-            elif len(per.nums) == 2:
-                csv.phone_1_value = phone_num(per.nums[0])
-                csv.phone_2_value = phone_num(per.nums[1])
-            elif len(per.nums) == 3:
-                csv.phone_1_value = phone_num(per.nums[0])
-                csv.phone_2_value = phone_num(per.nums[1])
-                csv.phone_3_value = phone_num(per.nums[2])
-            else:
-                print(f"{per.name} 电话信息有误，退出！")
-                sys.exit(-1)
-
-            if len(per.emails) == 0:
-                pass
-            elif len(per.emails) == 1:
-                csv.email_1_value = per.emails[0]
-            elif len(per.emails) == 2:
-                csv.email_1_value = per.emails[0]
-                csv.email_2_value = per.emails[1]
-            else:
-                print(f"{per.name} 邮箱信息有误，退出！")
-                sys.exit(-1)
+            self.set_phone(per.nums, csv)
+            self.set_email(per.emails, csv)
 
             if per.birth:
                 csv.notes += f"生日：{per.birth}，"
@@ -441,19 +518,32 @@ class Handle:
 
         print("；".join(google_csv_title))
         for p in self.csvs:
-            print(f"{p.first_name}；{p.middle_name}；{p.last_name}；{p.phonetic_first_name}；{p.phonetic_middle_name}；{p.phonetic_last_name}；{p.name_prefix}；{p.name_suffix}；{p.nickname}；{p.file_as}；{p.organization_name}；{p.organization_title}；{p.organization_department}；{p.birthday}；{p.notes}；{p.photo}；{p.labels}；{p.email_1_label}；{p.email_1_value}；{p.email_2_label}；{p.email_2_value}；{p.phone_1_label}；{p.phone_1_value}；{p.phone_2_label}；{p.phone_2_value}；{p.phone_3_label}；{p.phone_3_value}")
+            print(f"{p.name_prefix}；{p.first_name}；{p.middle_name}；{p.last_name}；{p.name_suffix}；", end='')
+            print(f"{p.phonetic_first_name}；{p.phonetic_middle_name}；{p.phonetic_last_name}；{p.nickname}；{p.file_as}；", end='')
+
+            print(f"{p.email_1_label}；{p.email_1_value}；{p.email_2_label}；{p.email_2_value}；{p.email_3_label}；{p.email_3_value}；{p.email_4_label}；{p.email_4_value}；{p.email_5_label}；{p.email_5_value}；", end='')
+
+            print(f"{p.phone_1_label}；{p.phone_1_value}；{p.phone_2_label}；{p.phone_2_value}；{p.phone_3_label}；{p.phone_3_value}；{p.phone_4_label}；{p.phone_4_value}；{p.phone_5_label}；{p.phone_5_value}；", end='')
+            print(f"{p.phone_6_label}；{p.phone_6_value}；{p.phone_7_label}；{p.phone_7_value}；{p.phone_8_label}；{p.phone_8_value}；{p.phone_9_label}；{p.phone_9_value}；", end='')
+
+            print(f"{p.address_1_label}；{p.address_1_country}；{p.address_1_street}；{p.address_1_extended}；{p.address_1_city}；{p.address_1_region}；{p.address_1_postal_code}；{p.address_1_pobox}", end='')
+            print(f"{p.organization_name}；{p.organization_title}；{p.organization_department}；{p.birthday}；", end='')
+            print(f"{p.event_1_label}；{p.event_1_value}；{p.relation_1_label}；{p.relation_1_value}；{p.website_1_label}；{p.website_1_value}；{p.custom_field_1_label}；{p.custom_field_1_value}", end='')
+            print(f"{p.notes}；{p.labels}；")
 
     def write_csv(self):
         csv_data: List[List[str]] = []
         for p in self.csvs:
             csv_d: List[str] = [
-                p.first_name, p.middle_name, p.last_name, p.phonetic_first_name,
-                p.phonetic_middle_name, p.phonetic_last_name, p.name_prefix, p.name_suffix,
-                p.nickname, p.file_as, p.organization_name, p.organization_title,
-                p.organization_department, p.birthday, p.notes, p.photo,
-                p.labels, p.email_1_label, p.email_1_value, p.email_2_label,
-                p.email_2_value, p.phone_1_label, p.phone_1_value, p.phone_2_label,
-                p.phone_2_value, p.phone_3_label, p.phone_3_value
+                p.name_prefix, p.first_name, p.middle_name, p.last_name, p.name_suffix,
+                p.phonetic_first_name, p.phonetic_middle_name, p.phonetic_last_name, p.nickname, p.file_as,
+                p.email_1_label, p.email_1_value, p.email_2_label, p.email_2_value, p.email_3_label, p.email_3_value, p.email_4_label, p.email_4_value, p.email_5_label, p.email_5_value,
+                p.phone_1_label, p.phone_1_value, p.phone_2_label, p.phone_2_value, p.phone_3_label, p.phone_3_value, p.phone_4_label, p.phone_4_value, p.phone_5_label, p.phone_5_value,
+                p.phone_6_label, p.phone_6_value, p.phone_7_label, p.phone_7_value, p.phone_8_label, p.phone_8_value, p.phone_9_label, p.phone_9_value,
+                p.address_1_label, p.address_1_country, p.address_1_street, p.address_1_extended, p.address_1_city, p.address_1_region, p.address_1_postal_code, p.address_1_pobox,
+                p.organization_name, p.organization_title, p.organization_department, p.birthday, p.event_1_label, p.event_1_value, p.relation_1_label,
+                p.relation_1_value, p.website_1_label, p.website_1_value, p.custom_field_1_label, p.custom_field_1_value,
+                p.notes, p.labels,
             ]
             csv_data.append(csv_d)
         # 创建并写入.csv文件
