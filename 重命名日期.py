@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 from datetime import datetime
 from pathlib import Path
@@ -139,12 +140,16 @@ def rename_files(directory: str):
 
 
 def main():
-    print("\n\n")
-    # dir: str = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\图片"
-    dir: str = r"C:\Users\wangxiao\Downloads\Phone Link"
-    # dir: str = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\联系人\人像"
-    # dir: str = "/Users/wangxiao/Downloads"
-    # dir: str = r"C:\Users\wangxiao\Pictures\Saved Pictures"
+    ps = platform.system().lower()
+    if ps == "windows":
+        dir: str = r"C:\Users\wangxiao\Downloads\Phone Link"
+    elif ps == "linux":
+        dir: str = ""
+    elif ps == "darwin":  # macOS
+        dir: str = "/Users/wangxiao/Downloads"
+    else:
+        dir: str = ""
+
     rename_files(dir)
 
 

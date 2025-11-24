@@ -1,4 +1,5 @@
 import os
+import platform
 from pathlib import Path
 from typing import Set
 
@@ -41,13 +42,19 @@ def rename_files(f_dir: str, to_dir: str):
 
 
 def main():
-    # 文件名将被修改的所在目录
-    # f_dir: str = "/Users/wangxiao/Downloads/临时"
-    f_dir: str = r"C:\Users\wangxiao\Downloads\Phone Link"
-
-    # 如上文件待合入的目录，不会做任何修改
-    # to_dir: str = "/Volumes/RTL9210/6/手机3"
-    to_dir: str = r"G:\6\手机3\别人的"
+    ps = platform.system().lower()
+    if ps == "windows":
+        f_dir: str = r"C:\Users\wangxiao\Downloads\Phone Link"
+        to_dir: str = r"G:\6\手机3\别人的"
+    elif ps == "linux":
+        f_dir: str = ""
+        to_dir: str = ""
+    elif ps == "darwin":  # macOS
+        f_dir: str = "/Users/wangxiao/Downloads"
+        to_dir: str = "/Volumes/RTL9210/6/手机3/别人的"
+    else:
+        f_dir: str = ""
+        to_dir: str = ""
 
     rename_files(f_dir, to_dir)
     print(f"\n\n接下来你可以将：\n    {f_dir}\n中的文件，拖到：\n    {to_dir}\n中，而不会担心提示有相同文件了")
