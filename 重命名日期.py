@@ -27,8 +27,8 @@ photo_take_1752233284821.jpg
 '''
 
 
+# /Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
-# C:\ProgramData\miniconda3\python.exe -m pip install
 
 # 合并文件夹，为了避免重复，重复的文件在日期前面加a之类，不要在后面加
 
