@@ -49,7 +49,7 @@ def main():
             # 系统
             "/etc/profile",
             "/etc/paths",
-            "/etc/paths.d",
+            "/etc/paths.d/homebrew",
             # 用户
             "/Users/wangxiao/.bash_profile",
             "/Users/wangxiao/.zprofile",
