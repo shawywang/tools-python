@@ -4,7 +4,7 @@ from typing import List
 import send2trash
 
 
-def safe_delete_file(file_p: str):
+def safe_delete_file(file_p: str):  # 输入单个文件全路径
     if os.path.isfile(file_p):
         print(f"即将删除{file_p}")
         confirm = input("确认删除？输入YES")
@@ -18,7 +18,7 @@ def safe_delete_file(file_p: str):
             print("取消操作")
 
 
-def safe_delete_files(folder_p: str):
+def safe_delete_files(folder_p: str):  # 输入文件夹路径，将遍历并删掉文件夹里所有文件
     if os.path.isdir(folder_p):
         to_delete: List[str] = []
         for f in os.listdir(folder_p):
@@ -36,7 +36,7 @@ def safe_delete_files(folder_p: str):
                 print("取消操作")
 
 
-def safe_delete_dir(folder_p: str):
+def safe_delete_dir(folder_p: str):  # 输入文件夹路径，直接删掉文件夹
     if os.path.isdir(folder_p):
         print(f"即将删除{folder_p}")
         confirm = input("确认删除？输入YES")
