@@ -147,6 +147,7 @@ def main():
         dir: str = ""
     elif ps == "darwin":  # macOS
         dir: str = "/Users/wangxiao/Downloads"
+        # dir: str = "/Volumes/RTL9210/视频/小红书保存"
     else:
         dir: str = ""
 
