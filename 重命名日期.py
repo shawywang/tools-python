@@ -1,11 +1,13 @@
 import os
 import platform
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Set, Optional, Tuple, Dict
 
 import pytz
+from PIL import Image
 
 shanghai_tz = pytz.timezone('Asia/Shanghai')
 '''
@@ -26,6 +28,8 @@ photo_take_1752233284821.jpg
 屏幕截图 2025-11-04 130018.png
 '''
 
+ps = platform.system().lower()
+
 
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
@@ -43,7 +47,7 @@ def withdraw_time(timestamp: int) -> Tuple[str, str, str, str]:
     return year, month, day, hour + minute
 
 
-def extract_date(filename: str) -> Tuple[str, str, str, str]:
+def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
     # ================== 显式的日期时间
     data_time: Dict[int, str] = {
         0: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})',  # 2025.5.12
@@ -91,7 +95,8 @@ def extract_date(filename: str) -> Tuple[str, str, str, str]:
             if i == 7:
                 stamp: int = int(ts.group(1)[:-3])
                 return withdraw_time(stamp)
-    return None
+    # ================== 从EXIF取，或文件系统日期
+    return get_image_date_info(os.path.join(directory, filename))
 
 
 def generate_new_name(date: Tuple[str, str, str, str], ext: str, existing_names: Set[str]) -> str:
@@ -110,24 +115,50 @@ def generate_new_name(date: Tuple[str, str, str, str], ext: str, existing_names:
         counter += 1
 
 
-def rename_files(directory: str):
-    for f in os.listdir(directory):
-        date = extract_date(f)
-        if not date:
-            print(f"文件{f}提取不出日期")
-        else:
-            print(date)
+def get_image_date_info(f: str) -> Tuple[str, str, str, str]:
+    try:
+        with Image.open(f) as img:
+            exif_data = img.getexif()
+            if exif_data and 306 in exif_data:  # 拍摄时间36867、图片数字化时间36868
+                data_t = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
+                year = str(data_t.year)
+                month = str(data_t.month)
+                day = str(data_t.day)
+                hour = str(data_t.hour).rjust(2, "0")
+                minute = str(data_t.minute).rjust(2, "0")
+                print("从exif中获取306；", end='')
+                return year, month, day, hour + minute
+            else:  # 读取文件系统信息
+                stat = os.stat(f)
+                mod_time = datetime.fromtimestamp(stat.st_mtime)  # 最后修改时间
+                if ps == "windows":
+                    create_time = datetime.fromtimestamp(stat.st_ctime)
+                else:
+                    create_time = datetime.fromtimestamp(stat.st_birthtime)
+                fi_t = create_time if create_time < mod_time else mod_time
+                year = str(fi_t.year)
+                month = str(fi_t.month)
+                day = str(fi_t.day)
+                hour = str(fi_t.hour).rjust(2, "0")
+                minute = str(fi_t.minute).rjust(2, "0")
+                print("从文件系统中获取；", end='')
+                return year, month, day, hour + minute
+    except Exception as e:
+        print(f"获取文件{f}日期信息失败:{e}")
+        sys.exit(-1)
 
-    # 第二次遍历：实际重命名
+
+def rename_files(directory: str):
     existing_names: Set[str] = set()
     for f in os.listdir(directory):
-        date = extract_date(f)
+        if f == ".DS_Store" or f.startswith("."):
+            continue
+        date = extract_date(f, directory)
         if date:
             ext: str = Path(f).suffix  # 文件原来的后缀
             if ext == ".ini":
                 continue
             new_name: str = generate_new_name(date, ext, existing_names)
-
             old_path: str = os.path.join(directory, f)
             new_path: str = os.path.join(directory, new_name)
             if not os.path.exists(new_path):
@@ -136,18 +167,18 @@ def rename_files(directory: str):
             else:
                 print(f"警告！文件已存在，跳过：{f} -> {new_name}")
         else:
-            print(f"不操作: {f}")
+            print(f"文件名提取不出日期: {f}", end='')
+            get_image_date_info(os.path.join(directory, f))
 
 
 def main():
-    ps = platform.system().lower()
     if ps == "windows":
         dir: str = r"C:\Users\wangxiao\Downloads\Phone Link"
     elif ps == "linux":
         dir: str = ""
     elif ps == "darwin":  # macOS
-        dir: str = "/Users/wangxiao/Downloads"
-        # dir: str = "/Volumes/RTL9210/视频/小红书保存"
+        # dir: str = "/Users/wangxiao/Downloads"
+        dir: str = "/Volumes/RTL9210/6/手机3/别人的"
     else:
         dir: str = ""
 
