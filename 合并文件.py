@@ -23,22 +23,32 @@ def generate_new_name(f_n: str, ext: str, existing_names: Set[str]) -> str:
 
 def rename_files(f_dir: str, to_dir: str):
     existing_names: Set[str] = set()
-    for f in os.listdir(to_dir):
-        existing_names.add(f)
-    for f in os.listdir(f_dir):
-        ext: str = Path(f).suffix
+    for f1 in os.listdir(to_dir):
+        if f1 == ".DS_Store" or f1.startswith("."):
+            continue
+        if os.path.isdir(os.path.join(f_dir, f1)):
+            continue
+        existing_names.add(f1)
+
+    for f2 in os.listdir(f_dir):
+        if f2 == ".DS_Store" or f2.startswith("."):
+            continue
+        if os.path.isdir(os.path.join(f_dir, f2)):
+            continue
+
+        ext: str = Path(f2).suffix
         if ext == ".ini":
             continue
-        f_n: str = f.rstrip(ext)  # 文件原来的后缀
+        f_n: str = f2.rstrip(ext)  # 文件原来的后缀
         new_name: str = generate_new_name(f_n, ext, existing_names)
 
-        old_path: str = os.path.join(f_dir, f)
+        old_path: str = os.path.join(f_dir, f2)
         new_path: str = os.path.join(f_dir, new_name)
         if not os.path.exists(new_path):
             os.rename(old_path, new_path)
-            print(f"重命名: {f} -> {new_name}")
+            print(f"重命名: {f2} -> {new_name}")
         else:
-            print(f"警告！文件已存在，跳过：{f} -> {new_name}")
+            print(f"警告！文件已存在，跳过：{f2} -> {new_name}")
 
 
 def main():
