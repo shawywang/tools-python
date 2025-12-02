@@ -146,19 +146,19 @@ def get_date_from_file_sys(directory, filename: str):
     return year, month, day, hour + minute
 
 
-def generate_new_name(date: Tuple[str, str, str, str], ext: str, existing_names: Set[str]) -> str:
+def generate_new_name(date: Tuple[str, str, str, str], ext: str, existing_names: Set[str]):
     year, month, day, time = date
     name: str = f"{year}.{month}.{day}_{time}{ext}"
 
     if name not in existing_names:
         existing_names.add(name)
-        return name
+        return name, True  # 直接使用规范命名
     counter: int = 2
     while True:
         new_name: str = f"{year}.{month}.{day}_{time}_{counter}{ext}"
         if new_name not in existing_names:
             existing_names.add(new_name)
-            return new_name
+            return new_name, False  # 末尾加了序号
         counter += 1
 
 
@@ -180,7 +180,7 @@ class Handle:
 
     def rename_files(self, directory: str):
         existing_names: Set[str] = set()
-        # 第一次遍历，把不用修改的文件名添加到已存在的库中
+        # 第一次遍历，把已经为规范名的文件，添加到已存在的库中
         for f1 in os.listdir(directory):
             if f1 == ".DS_Store" or f1.startswith("."):
                 continue
@@ -189,6 +189,7 @@ class Handle:
             date = extract_date(f1, directory)
             if date[0] == "不用修改":
                 existing_names.add(f1)
+
         print("\n\n====第二次遍历，修改文件名====\n\n")
         for f2 in os.listdir(directory):
             if f2 == ".DS_Store" or f2.startswith("."):
@@ -200,14 +201,17 @@ class Handle:
                 ext: str = Path(f2).suffix  # 文件原来的后缀
                 if ext == ".ini":
                     continue
-                new_name: str = generate_new_name(date, ext, existing_names)
+                    
+                new_name, flag = generate_new_name(date, ext, existing_names)
                 old_path: str = os.path.join(directory, f2)
                 new_path: str = os.path.join(directory, new_name)
+
                 if not os.path.exists(new_path):
                     os.rename(old_path, new_path)
                     print(f"重命名: {f2} -> {new_name}")
                 else:
-                    print(f"警告！文件已存在，跳过：{f2} -> {new_name}")
+                    print(f"出错！文件已存在：{f2} -> {new_name}")
+                    sys.exit(-1)
             else:
                 existing_names.add(f2)
                 print(f"文件名不操作: {f2}")
