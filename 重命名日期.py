@@ -190,6 +190,14 @@ class Handle:
             if date[0] == "不用修改":
                 existing_names.add(f1)
 
+        # 去掉带下划线的后缀，便于重新排序号
+        # keep = set()
+        # while existing_names:
+        #     x = existing_names.pop()
+        #     if not bool(re.search(r'_[0-9]\.', x)):
+        #         keep.add(x)
+        # existing_names = keep
+
         print("\n\n====第二次遍历，修改文件名====\n\n")
         for f2 in os.listdir(directory):
             if f2 == ".DS_Store" or f2.startswith("."):
@@ -201,7 +209,7 @@ class Handle:
                 ext: str = Path(f2).suffix  # 文件原来的后缀
                 if ext == ".ini":
                     continue
-                    
+
                 new_name, flag = generate_new_name(date, ext, existing_names)
                 old_path: str = os.path.join(directory, f2)
                 new_path: str = os.path.join(directory, new_name)
@@ -225,7 +233,7 @@ def main():
         dir: str = ""
     elif ps == "darwin":  # macOS
         # dir: str = "/Users/wangxiao/Downloads"
-        dir: str = "/Volumes/RTL9210/临时"
+        dir: str = "/Volumes/RTL9210/6/手机3/别人的"
     else:
         dir: str = ""
 
