@@ -31,16 +31,20 @@ photo_take_1752233284821.jpg
 
 ps = platform.system().lower()
 data_time: Dict[int, str] = {
-    0: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})_(\d{4})\.',  # 2025.5.12_0812.
-    1: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})_(\d{4})\_',  # 2025.5.12_0812_
-    2: r'(20\d{2})\.(\d{1,2})\.(\d{1,2}).',  # 2025.5.12.
-    
-    3: r'(20\d{2})(\d{2})(\d{2})_(\d{6})',  # 20251025_124308
-    4: r'(20\d{2})(\d{2})(\d{2})-(\d{6})',  # 20201008-224222
-    5: r'(20\d{2})(\d{2})(\d{2})(\d{6})',  # 20191117132350
-    6: r'(20\d{2})-(\d{2})-(\d{2}) (\d{6})',  # 2025-11-04 130018
-    7: r'(20\d{2})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})',  # 2025-03-25_13-12-40
-    8: r'(20\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})',  # 2016-08-24-09-44-01
+    # 不用改
+    0: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})_(\d{4})\.',  # 2025.5.12_0812.jpg
+    1: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})\.',  # 2025.5.12.jpg
+    # 改序号，日期不能变
+    2: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})_(\d{1,2})\.',  # 2025.5.12_序号.jpg
+    3: r'(20\d{2})\.(\d{1,2})\.(\d{1,2})_(\d{4})_',  # 2025.5.12_0812_序号.jpg
+    # 识别日期、时间为连续6位数
+    4: r'(20\d{2})(\d{2})(\d{2})_(\d{6})',  # 20251025_124308
+    5: r'(20\d{2})(\d{2})(\d{2})-(\d{6})',  # 20201008-224222
+    6: r'(20\d{2})(\d{2})(\d{2})(\d{6})',  # 20191117132350
+    7: r'(20\d{2})-(\d{2})-(\d{2}) (\d{6})',  # 2025-11-04 130018
+    # 识别日期、时间为2*3共6位数
+    8: r'(20\d{2})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})',  # 2025-03-25_13-12-40
+    9: r'(20\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})',  # 2016-08-24-09-44-01
 }
 times_tamp: Dict[int, str] = {
     0: r'wx_camera_(1\d{9})',
@@ -57,7 +61,6 @@ times_tamp: Dict[int, str] = {
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
 
-# 合并文件夹，为了避免重复，重复的文件在日期前面加a之类，不要在后面加
 
 def withdraw_time(timestamp: int) -> Tuple[str, str, str, str]:
     dt = datetime.fromtimestamp(timestamp, tz=shanghai_tz)
@@ -74,15 +77,26 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
     for i, dt in data_time.items():
         dm: Optional[re.Match] = re.search(dt, filename)
         if dm:
-            if i == 0:
+            if i in (0, 1):
                 return "不用修改", "", "", ""
-            if i in (3, 4, 5, 6):
+            if i == 2:
+                year, month, day, _ = dm.groups()
+                m = str(month.lstrip("0"))
+                d = str(day.lstrip("0"))
+                return year, m, d, "0"
+            if i == 3:
+                year, month, day, time = dm.groups()
+                m = str(month.lstrip("0"))
+                d = str(day.lstrip("0"))
+                t: str = time
+                return year, m, d, t
+            if i in (4, 5, 6, 7):
                 year, month, day, time = dm.groups()
                 m = str(month.lstrip("0"))
                 d = str(day.lstrip("0"))
                 t: str = time[:-2]
                 return year, m, d, t
-            if i in (7, 8):
+            if i in (8, 9):
                 year, month, day, hour, min, sec = dm.groups()
                 m = str(month.lstrip("0"))
                 d = str(day.lstrip("0"))
@@ -98,6 +112,10 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
                 stamp: int = int(ts.group(1)[:-3])
                 return withdraw_time(stamp)
     # ================== 从EXIF取，或文件系统日期
+    return get_datetime_sys(directory, filename)
+
+
+def get_datetime_sys(directory, filename: str) -> Tuple[str, str, str, str]:
     f_type = get_file_type_by_mime(os.path.join(directory, filename))
     if f_type == "图片":
         try:
@@ -108,7 +126,7 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
                         data_t = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
                     except Exception as e:
                         print("exif无拍摄时间", end='')
-                        return get_date_from_file_sys(directory, filename)
+                        return get_datetime_from_file_sys(directory, filename)
                     year = str(data_t.year)
                     month = str(data_t.month)
                     day = str(data_t.day)
@@ -117,14 +135,14 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
                     print("从exif中获取306；", end='')
                     return year, month, day, hour + minute
                 else:  # 读取文件系统信息
-                    return get_date_from_file_sys(directory, filename)
+                    return get_datetime_from_file_sys(directory, filename)
         except Exception as e:
             print(f"文件{filename}无任何可用日期信息：{e}")
             sys.exit(-1)
     elif f_type == "视频":
         try:
             # 读取文件系统信息
-            return get_date_from_file_sys(directory, filename)
+            return get_datetime_from_file_sys(directory, filename)
         except Exception as e:
             print(f"文件{filename}无任何可用日期信息：{e}")
             sys.exit(-1)
@@ -132,7 +150,7 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
         return "不用修改", "", "", ""
 
 
-def get_date_from_file_sys(directory, filename: str):
+def get_datetime_from_file_sys(directory, filename: str):
     stat = os.stat(os.path.join(directory, filename))
     mod_time = datetime.fromtimestamp(stat.st_mtime)  # 最后修改时间
     if ps == "windows":
@@ -151,18 +169,30 @@ def get_date_from_file_sys(directory, filename: str):
 
 def generate_new_name(date: Tuple[str, str, str, str], ext: str, existing_names: Set[str]):
     year, month, day, time = date
-    name: str = f"{year}.{month}.{day}_{time}{ext}"
+    if time != "0":
+        name: str = f"{year}.{month}.{day}_{time}{ext}"
+    else:
+        name: str = f"{year}.{month}.{day}{ext}"
 
     if name not in existing_names:
         existing_names.add(name)
         return name, True  # 直接使用规范命名
+
     counter: int = 2
-    while True:
-        new_name: str = f"{year}.{month}.{day}_{time}_{counter}{ext}"
-        if new_name not in existing_names:
-            existing_names.add(new_name)
-            return new_name, False  # 末尾加了序号
-        counter += 1
+    if time != "0":
+        while True:
+            new_name: str = f"{year}.{month}.{day}_{time}_{counter}{ext}"
+            if new_name not in existing_names:
+                existing_names.add(new_name)
+                return new_name, False  # 末尾加了序号
+            counter += 1
+    else:
+        while True:
+            new_name: str = f"{year}.{month}.{day}_{counter}{ext}"
+            if new_name not in existing_names:
+                existing_names.add(new_name)
+                return new_name, False  # 末尾加了序号
+            counter += 1
 
 
 def get_file_type_by_mime(file_path):
@@ -182,24 +212,18 @@ class Handle:
         pass
 
     def rename_files(self, directory: str):
-        existing_names: Set[str] = set()
+        dont_renames: Set[str] = set()  # 已经规范的文件名，不用改了
+        existing_names: Set[str] = set()  # 当前文件夹所有文件名
         # 第一次遍历，把已经为规范名的文件，添加到已存在的库中
         for f1 in os.listdir(directory):
             if f1 == ".DS_Store" or f1.startswith("."):
                 continue
             if os.path.isdir(os.path.join(directory, f1)):
                 continue
+            existing_names.add(f1)
             date = extract_date(f1, directory)
             if date[0] == "不用修改":
-                existing_names.add(f1)
-
-        # 去掉带下划线的后缀，便于重新排序号
-        # keep = set()
-        # while existing_names:
-        #     x = existing_names.pop()
-        #     if not bool(re.search(r'_[0-9]\.', x)):
-        #         keep.add(x)
-        # existing_names = keep
+                dont_renames.add(f1)
 
         print("\n\n====第二次遍历，修改文件名====\n\n")
         for f2 in os.listdir(directory):
@@ -207,25 +231,28 @@ class Handle:
                 continue
             if os.path.isdir(os.path.join(directory, f2)):
                 continue
+            if f2 in dont_renames:
+                continue
             date = extract_date(f2, directory)
-            if date[0] != "不用修改":
-                ext: str = Path(f2).suffix  # 文件原来的后缀
-                if ext == ".ini":
-                    continue
+            ext: str = Path(f2).suffix  # 文件原来的后缀
+            if ext == ".ini":
+                continue
+            existing_names.remove(f2)
+            new_name, flag = generate_new_name(date, ext, existing_names)
+            old_path: str = os.path.join(directory, f2)
+            new_path: str = os.path.join(directory, new_name)
 
-                new_name, flag = generate_new_name(date, ext, existing_names)
-                old_path: str = os.path.join(directory, f2)
-                new_path: str = os.path.join(directory, new_name)
-
-                if not os.path.exists(new_path):
-                    os.rename(old_path, new_path)
-                    print(f"重命名: {f2} -> {new_name}")
-                else:
-                    print(f"出错！文件已存在：{f2} -> {new_name}")
-                    sys.exit(-1)
-            else:
+            if old_path == new_path:
                 existing_names.add(f2)
-                print(f"文件名不操作: {f2}")
+                continue
+
+            if not os.path.exists(new_path):
+                os.rename(old_path, new_path)
+                print(f"重命名: {f2} -> {new_name}")
+            else:
+                print(f"出错！文件已存在：{f2} -> {new_name}")
+                existing_names.add(f2)
+                sys.exit(-1)
 
 
 def main():
@@ -236,7 +263,8 @@ def main():
         dir: str = ""
     elif ps == "darwin":  # macOS
         # dir: str = "/Users/wangxiao/Downloads"
-        dir: str = "/Volumes/RTL9210/6/手机3/别人的"
+        dir: str = "/Volumes/RTL9210/小米8视频/校园"
+        # dir: str = "/Users/wangxiao/Nutstore Files/我的坚果云/手机照片/2.OPPO A31T"
     else:
         dir: str = ""
 
