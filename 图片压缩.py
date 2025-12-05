@@ -155,6 +155,9 @@ class Handle:
 def main():
     print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
+
+    h.reduce_space_all(r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后", r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后\压缩")
+
     # h.svg_to_mini_png_all(r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源", r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后")
     # h.cutbox_all(r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后", r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后\压缩")
     # h.reduce_space_all(r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后", r"C:\Users\wangxiao\Nutstore\1\我的坚果云\打字\逸码\键盘助记svg源\压缩转png、手工裁剪后\压缩")
