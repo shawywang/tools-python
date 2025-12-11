@@ -19,5 +19,6 @@ def print_tree(path, indent=""):
 
 
 if __name__ == "__main__":
-    dir_path = "/Volumes/RTL9210/高中教材"
+    # dir_path = "/Volumes/RTL9210/高中教材"
+    dir_path = "/Volumes/RTL9210/电影"
     print_tree(Path(dir_path))
