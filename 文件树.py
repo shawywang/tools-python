@@ -1,10 +1,12 @@
-from os.path import isdir
 from pathlib import Path
 
 
 def print_tree(path, indent=""):
-    if not isdir(path):
-        print(indent + path.name)
+    if not path.exists():
+        print(f"路径不存在：{path}")
+        return
+    if path.is_file():
+        return
     indent += "    "
     for item in sorted(path.iterdir()):
         if item.name.startswith("."):
@@ -18,5 +20,4 @@ def print_tree(path, indent=""):
 
 if __name__ == "__main__":
     dir_path = "/Volumes/RTL9210/高中教材"
-    print("")
     print_tree(Path(dir_path))
