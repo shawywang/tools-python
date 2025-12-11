@@ -9,12 +9,14 @@ def print_tree(path, indent=""):
     for item in sorted(path.iterdir()):
         if item.name.startswith("."):
             continue
-        print(indent + "|----" + item.name)
         if item.is_dir():
+            print(indent + "|----" + item.name + "\\")
             print_tree(item, indent + "    ")
+        else:
+            print(indent + "|----" + item.name)
 
 
 if __name__ == "__main__":
-    dir_path = "/Users/wangxiao/Documents/github/tools-python"
+    dir_path = "/Volumes/RTL9210/高中教材"
     print("")
     print_tree(Path(dir_path))
