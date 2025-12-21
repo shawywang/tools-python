@@ -112,7 +112,9 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
                 stamp: int = int(ts.group(1)[:-3])
                 return withdraw_time(stamp)
     # ================== 从EXIF取，或文件系统日期
-    return get_datetime_sys(directory, filename)
+    sys_datetime = get_datetime_sys(directory, filename)
+    print(f"遇到疑问，把{filename}改成{sys_datetime}？")
+    sys.exit(-1)
 
 
 def get_datetime_sys(directory, filename: str) -> Tuple[str, str, str, str]:
