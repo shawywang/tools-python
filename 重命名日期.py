@@ -114,7 +114,11 @@ def extract_date(filename, directory: str) -> Tuple[str, str, str, str]:
     # ================== 从EXIF取，或文件系统日期
     sys_datetime = get_datetime_sys(directory, filename)
     print(f"遇到疑问，把{filename}改成{sys_datetime}？")
-    sys.exit(-1)
+    confirm = input("确认删除？输入Y：")
+    if confirm == "Y":
+        return sys_datetime
+    else:
+        sys.exit(-1)
 
 
 def get_datetime_sys(directory, filename: str) -> Tuple[str, str, str, str]:
