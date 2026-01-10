@@ -13,7 +13,7 @@ class Handle:
     def find_mac_junk_files(self, parent_dir):
         for root, dirs, files in os.walk(parent_dir):
             for file in files:
-                if file == ".DS_Store":  # or file.startswith("._")
+                if file == ".DS_Store" or file.startswith("._"):
                     file_path = os.path.join(root, file)
                     self.junk.append(file_path)
 
@@ -53,7 +53,7 @@ def main():
     h = Handle()
     ps = platform.system().lower()
     if ps == "windows":
-        dir: str = r"G:\\"
+        dir: str = "G:\\6"
     elif ps == "linux":
         dir: str = ""
     elif ps == "darwin":  # macOS
