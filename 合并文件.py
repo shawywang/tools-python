@@ -20,7 +20,6 @@ def generate_new_name(f_n: str, ext: str, existing_names, existing_names_to_dir:
             return new_name, True  # 改过
         counter += 1
 
-
 def rename_files(f_dir: str, to_dir: str):
     existing_names: Set[str] = set()  # 两个文件夹所有的已知文件名
     existing_names_to_dir: Set[str] = set()

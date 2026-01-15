@@ -23,7 +23,6 @@ def parse_ratio(input_str, max_value=20):
     except:
         return "无效输入"
 
-
 def find_closest_ratio_optimized(width, height, max_value=20):
     """
     优化版本：使用连分数展开来找到最接近的比例

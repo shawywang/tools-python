@@ -29,7 +29,6 @@ def safe_delete_files(folder_p: str):
             else:
                 print("取消操作")
 
-
 class Handle:
     def __init__(self):
         pass
