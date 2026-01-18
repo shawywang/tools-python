@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 
 
-# /opt/miniconda3/bin/python3.12 -m pip install --upgrade pip && /opt/miniconda3/bin/python3.12 -m pip install openpyxl
+# pip install openpyxl
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip ; C:\ProgramData\miniconda3\python.exe -m pip install openpyxl
 
 class Handle:
