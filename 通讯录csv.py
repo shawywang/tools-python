@@ -347,20 +347,29 @@ class CulDate:
                 print(f"，距今{m[8]}年{m[9]}个月{m[10]}天")
 
         print("\n\n=========谷歌日历========\n\n")
-        service = self.cal.get_calendar_service()
+        try:
+            service = self.cal.get_calendar_service()
+        except:
+            sys.exit(-1)
         print("\n\n=========清除谷歌日历所有事件========\n\n")
-        self.cal.clear_all_events(service)
+        try:
+            self.cal.clear_all_events(service)
+        except:
+            sys.exit(-1)
         print("\n\n=========清除完成，开始添加========\n\n")
-        for m in mention_info:
-            summary: str = f"{m[4]}{m[5]}"
-            if len(m) != 8:
-                summary += f"（满{int(m[8]) + 1}年）"
-            self.cal.create_all_day_event(
-                service,
-                summary,
-                date(int(m[1]), int(m[2]), int(m[3])),
-                f"{m[6]}（{m[7]}）"
-            )
+        try:
+            for m in mention_info:
+                summary: str = f"{m[4]}{m[5]}"
+                if len(m) != 8:
+                    summary += f"（满{int(m[8]) + 1}年）"
+                self.cal.create_all_day_event(
+                    service,
+                    summary,
+                    date(int(m[1]), int(m[2]), int(m[3])),
+                    f"{m[6]}（{m[7]}）"
+                )
+        except:
+            sys.exit(-1)
         print("🎉 ALL DONE !!!")
 
     def parse_lunar_date(self, date_str: str) -> lunardate.LunarDate:  # 解析农历日期字符串，支持格式："正月初五"、"1990年四月廿三"、"1999年腊月初三"、"冬月十三"
