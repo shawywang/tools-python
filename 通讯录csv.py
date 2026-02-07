@@ -2,6 +2,7 @@ import calendar
 import csv
 import os
 import os.path
+import platform
 import re
 import sys
 from datetime import date
@@ -17,25 +18,36 @@ from googleapiclient.discovery import build
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # 我的项目：https://console.cloud.google.com/welcome?project=shawywang
+# 指导：https://ai.google.dev/palm_docs/oauth_quickstart?hl=zh-cn
+# 启用日历api：https://developers.google.com/workspace/calendar/api/quickstart/python?hl=zh_CN
+# 日历未被展示（右边警告）：https://console.cloud.google.com/auth/branding?hl=zh-cn&project=shawywang
 # 打开网页登录谷歌账号被拦截后，点高级，强行允许访问
 # 联系人.txt注意：邮箱最多5个（通过csv导入的时候，谷歌的隐形限制），电话最多9个（目前没发现上限），生日和纪念日仅支持农历
 # 复制打印的结果到excel中，使用"；"分列后，xlsx改名为csv，从以下网页导入到谷歌联系人中
 # https://contacts.google.com/?hl=zh-CN&tab=CC
-
-oauth_token = r'C:\Users\wangxiao\不参与同步文件\github\谷歌桌面客户端1凭据.json'
-oauth_token2 = r'C:\Users\wangxiao\不参与同步文件\github\谷歌短期凭据.json'
+# 注意，下面设置了代理端口，要和当前系统的保持一致，有时候是7897
+ps = platform.system().lower()
+oauth_token = r'C:\Users\wangxiao\Nutstore\1\我的坚果云\谷歌桌面客户端1凭据.json'
+oauth_token2 = r'C:\Users\wangxiao\Nutstore\1\我的坚果云\谷歌短期凭据.json'
+if ps == "darwin":  # macOS
+    oauth_token = '/Users/wangxiao/Nutstore Files/我的坚果云/谷歌桌面客户端1凭据.json'
+    oauth_token2 = '/Users/wangxiao/Nutstore Files/我的坚果云/谷歌短期凭据.json'
 from dotenv import load_dotenv
 
 load_dotenv()  # 从.env文件加载配置
 # 强制设置外网代理环境变量（Clash默认端口）
-PROXY_URL = os.getenv('PROXY_URL', 'http://127.0.0.1:7890')  # 优先使用系统设置中的代理配置
+PROXY_URL = os.getenv('PROXY_URL', 'http://127.0.0.1:7897')  # 优先使用系统设置中的代理配置
 os.environ['HTTP_PROXY'] = PROXY_URL
 os.environ['HTTPS_PROXY'] = PROXY_URL
 os.environ['http_proxy'] = PROXY_URL
 os.environ['https_proxy'] = PROXY_URL
 
 file_path = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\我的文档\个人\联系人.txt"
+if ps == "darwin":  # macOS
+    file_path = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/联系人.txt"
 out_csv_file = r"C:\Users\wangxiao\Downloads\contact.csv"
+if ps == "darwin":  # macOS
+    out_csv_file = "/Users/wangxiao/Downloads/contact.csv"
 google_csv_title: List[str] = [
     "Name Prefix", "First Name", "Middle Name", "Last Name", "Name Suffix",
     "Phonetic First Name", "Phonetic Middle Name", "Phonetic Last Name",
@@ -275,15 +287,11 @@ class GoogleCalendar:
                 singleEvents=True,
                 orderBy='startTime'
             ).execute()
-
             events = events_result.get('items', [])
-
             if not events:
                 print("📅 日历中没有任何事件")
                 return 0
-
             print(f"🗑️ 找到 {len(events)} 个事件，开始删除...")
-
             deleted_count = 0
             for event in events:
                 try:
@@ -297,15 +305,13 @@ class GoogleCalendar:
 
                     deleted_count += 1
                     print(f"✅ 已删除: {event_summary}")
-
                 except Exception as e:
                     print(f"❌ 删除事件失败 {event.get('summary', '未知')}: {e}")
-
             print(f"🎉 删除完成！共删除了 {deleted_count} 个事件")
             return deleted_count
-
         except Exception as e:
             print(f"💥 清除事件时出错: {e}")
+            sys.exit(-1)
             return 0
 
 
