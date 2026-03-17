@@ -17,6 +17,8 @@ from googleapiclient.discovery import build
 
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
+# /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install --upgrade pip
+# /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # 我的项目：https://console.cloud.google.com/welcome?project=shawywang
 # 指导：https://ai.google.dev/palm_docs/oauth_quickstart?hl=zh-cn
 # 启用日历api：https://developers.google.com/workspace/calendar/api/quickstart/python?hl=zh_CN
@@ -36,11 +38,11 @@ from dotenv import load_dotenv
 
 load_dotenv()  # 从.env文件加载配置
 # 强制设置外网代理环境变量（Clash默认端口）
-PROXY_URL = os.getenv('PROXY_URL', 'http://127.0.0.1:7897')  # 优先使用系统设置中的代理配置
-os.environ['HTTP_PROXY'] = PROXY_URL
-os.environ['HTTPS_PROXY'] = PROXY_URL
-os.environ['http_proxy'] = PROXY_URL
-os.environ['https_proxy'] = PROXY_URL
+PROXY_URL = 'http://127.0.0.1:7897'  # 以clash为准
+# os.environ['HTTP_PROXY'] = PROXY_URL
+# os.environ['HTTPS_PROXY'] = PROXY_URL
+# os.environ['http_proxy'] = PROXY_URL
+# os.environ['https_proxy'] = PROXY_URL
 
 file_path = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\我的文档\个人\联系人.txt"
 if ps == "darwin":  # macOS
@@ -283,7 +285,7 @@ class GoogleCalendar:
         try:
             events_result = service.events().list(
                 calendarId='primary',
-                maxResults=2500,  # 最大数量
+                maxResults=100,  # 最大数量
                 singleEvents=True,
                 orderBy='startTime'
             ).execute()
@@ -312,7 +314,6 @@ class GoogleCalendar:
         except Exception as e:
             print(f"💥 清除事件时出错: {e}")
             sys.exit(-1)
-            return 0
 
 
 class CulDate:
