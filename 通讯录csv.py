@@ -7,7 +7,7 @@ import re
 import sys
 from datetime import date
 from datetime import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Set
 
 import lunardate
 from google.auth.transport.requests import Request
@@ -90,6 +90,8 @@ day_map: Dict[str, int] = {
     '廿一': 21, '廿二': 22, '廿三': 23, '廿四': 24, '廿五': 25,
     '廿六': 26, '廿七': 27, '廿八': 28, '廿九': 29, '三十': 30
 }
+
+mention_info_exclude: Set[str] = {"吴欢", "王磊", "罗春林", "钱昱竹", "唐倩", "郝美惠", "朱朝玉", "薛钰", "赵乃静", "李百烨", "李传强", "张少卿", "邓佳佳", "刘禹", "李治霖", "王建亮", "张兰兰"}
 
 
 def withdraw(items: List[str], key_word: str) -> str:
@@ -347,6 +349,8 @@ class CulDate:
         mention_info.sort(key=lambda x: int(x[0]))
 
         for m in mention_info:
+            if m[4] in mention_info_exclude:
+                continue
             print(f"{m[0]}天后（{m[1]}-{m[2]}-{m[3]}），{m[4]}{m[5]}：{m[6]}（{m[7]}）", end='')
             if len(m) == 8:
                 print("")
