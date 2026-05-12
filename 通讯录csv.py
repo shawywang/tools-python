@@ -330,7 +330,7 @@ class CulDate:
                 per_birth = self.parse_lunar_date(per.birth)  # 输出也是农历
                 days_to, date_new = self.days_to(per_birth)
 
-                ment_info: List[str] = [days_to, date_new.year, date_new.month, date_new.day, per.name, "生日", per.birth, per_birth.toSolarDate().isoformat()]
+                ment_info: List[str] = [days_to, date_new.year, date_new.month, date_new.day, per.name, "生日", per.birth, f"{per_birth.toSolarDate().year}-{per_birth.toSolarDate().month}-{per_birth.toSolarDate().day}"]
                 if per_birth.year < date.today().year:
                     y, m, d = self.date_diff(per_birth, date.today())
                     ment_info.extend([f"{y}", f"{m}", f"{d}"])
@@ -340,7 +340,7 @@ class CulDate:
                 per_memo = self.parse_lunar_date(per.memorial)  # 输出也是农历
                 days_to, date_new = self.days_to(per_memo)
 
-                ment_info: List[str] = [days_to, date_new.year, date_new.month, date_new.day, per.name, "纪念日", per.memorial, per_memo.toSolarDate().isoformat()]
+                ment_info: List[str] = [days_to, date_new.year, date_new.month, date_new.day, per.name, "纪念日", per.memorial, f"{per_memo.toSolarDate().year}-{per_memo.toSolarDate().month}-{per_memo.toSolarDate().day}"]
                 if per_memo.year < date.today().year:
                     y, m, d = self.date_diff(per_memo, date.today())
                     ment_info.extend([f"{y}", f"{m}", f"{d}"])
