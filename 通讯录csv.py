@@ -91,7 +91,8 @@ day_map: Dict[str, int] = {
     '廿六': 26, '廿七': 27, '廿八': 28, '廿九': 29, '三十': 30
 }
 
-mention_info_exclude: Set[str] = {"吴欢", "王磊", "罗春林", "钱昱竹", "唐倩", "郝美惠", "朱朝玉", "薛钰", "赵乃静", "李百烨", "李传强", "张少卿", "邓佳佳", "刘禹", "李治霖", "王建亮", "张兰兰"}
+# mention_info_exclude: Set[str] = {"吴欢", "王磊", "罗春林", "钱昱竹", "唐倩", "郝美惠", "朱朝玉", "薛钰", "赵乃静", "李百烨", "李传强", "张少卿", "邓佳佳", "刘禹", "李治霖", "王建亮", "张兰兰"}
+mention_info_exclude: Set[str] = set()
 
 
 def withdraw(items: List[str], key_word: str) -> str:
