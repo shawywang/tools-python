@@ -4,7 +4,10 @@
 # pip install pillow svgelements cairosvg cairocffi==0.8
 # pycairo用不上
 # 安装字体：98WB-V.otf、98WB-U.otf以查看未显示字根
-# 1.brew install libraqm freetype harfbuzz fribidi
+# raqm：竖排等复杂布局文本支撑
+# 源码编译安装libraqm：https://github.com/HOST-Oman/libraqm，函数文档https://host-oman.github.io/libraqm
+# 1.brew install freetype harfbuzz fribidi meson gtk-doc
+# export XML_CATALOG_FILES="/usr/local/etc/xml/catalog" # for the docs
 # 2.pip uninstall Pillow
 # 3.pip install --upgrade Pillow --global-option="build_ext" --global-option="--enable-raqm" --no-binary=Pillow
 import platform
