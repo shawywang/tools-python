@@ -11,8 +11,7 @@
 # 2.pip uninstall Pillow
 # 3.pip install --upgrade Pillow --global-option="build_ext" --global-option="--enable-raqm" --no-binary=Pillow
 import platform
-import sys
-from typing import Dict, List
+from typing import List
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -25,46 +24,47 @@ wangxiao_wangyunhui: List[List[str]] = [
     ["孝男王永(雄/开/跃)孝孙(男/女)(王定海/毛勇/刘位/王雪莲/王雪萍)孝孙(媳/婿)(陈晓丽/侯富馨)", "慈母王(宅)朱君寄春老孺人一位收用"],
 ]
 
-size: List[Dict[int, int]] = [
-    {10: 5},
-    {10: 5},
-    {10: 5},
-    {10: 5},
-    {10: 5},
-    {10: 5},
-]
+wangxiong: List[str] = ["孝男王永", "雄/开/跃", "孝孙", "男/女", "王定海/毛勇/刘位/王雪莲/王雪萍", "孝孙", "媳/婿", "陈晓丽/侯富馨", "慈母王", "宅/", "朱君寄春老", "孺/", "人一位收用"]
 
 
 class Handle:
     def __init__(self):
-        pass
+        self.img_path = "/Users/wangxiao/Downloads/1.webp"
+        self.font_size = 20
+        self.font_path = "/Users/wangxiao/Library/Fonts/KaiTi-YiMa.ttf"
+        self.font_path2 = "/Users/wangxiao/Library/Fonts/康熙字典体.otf"
+        self.width = 700
+        self.height = 700
 
-    def gen_content(self):
-        pass
+    def portrait(self, text: str, color: str, x: int, y: int):
+        max_y = y
+        img = Image.open(self.img_path).convert('RGB')
+        draw = ImageDraw.Draw(img)
+        now_y = y
+        now_x = x
+        for c in text:
+            if c == "/":
+                now_y = y
+                now_x -= self.font_size
+                continue
+            draw.text((now_x, now_y), c, font=ImageFont.truetype(self.font_path, self.font_size), fill=color)
+            now_y += self.font_size  # 字的高度
+            if now_y > max_y:
+                max_y = now_y
+        img.save(self.img_path)
+        return max_y
 
-    def draw(self, text: str, width: int = 700, height: int = 700):
-        image = Image.new("RGB", (width, height), "white")
+    def draw(self, x: int, y=0):
+        image = Image.new("RGB", (self.width, self.height), "white")
         draw = ImageDraw.Draw(image)
-
         # 加圆角边框
         draw.rounded_rectangle(
-            xy=[0, 0, width, height],
+            xy=[0, 0, self.width, self.height],
             fill=None,  # 不填充
             outline="black",
             width=3,  # 边框宽度
             radius=20,  # 圆角半径
         )
-
-        # 绘制字根
-        font = ImageFont.truetype("/Users/wangxiao/Library/Fonts/康熙字典体.otf", 20)
-        draw.text(
-            xy=(0, 0),
-            text="孝男王永(雄/开/跃)孝孙(男/女)(王定海/毛勇/刘位/王雪莲/王雪萍)孝孙(媳/婿)(陈晓丽/侯富馨)",
-            fill="black",
-            font=font,
-            direction="ttb"
-        )
-
         palette_img = Image.new("P", (1, 1))  # 调色板
         palette_img.putpalette(
             [
@@ -77,30 +77,32 @@ class Handle:
                 221, 221, 221,  # 浅灰色
             ]
         )
-
         fixed_image = image.quantize(palette=palette_img, dither=Image.Dither.NONE)
-
-        if ps == "windows":
-            dir_fp: str = f"C:\\Users\\wangxiao\\Downloads\\1.webp"
-        elif ps == "darwin":  # macOS
-            dir_fp: str = f"/Users/wangxiao/Downloads/1.webp"
-        else:
-            sys.exit(-1)
-
         fixed_image.save(
-            fp=dir_fp,
+            fp=self.img_path,
             optimize=True,
             compress_level=5,
             dpi=(72, 72),
             format="WEBP",
             quality=80,
         )
+        cur_y = y
+        for sep in wangxiong:
+            cur_x = x
+            line_num = sep.count("/") + 1  # 列数
+            if line_num > 1:
+                line_half = line_num // 2
+                if line_num % 2 == 0:  # 偶数列
+                    cur_x += self.font_size // 2 + (line_half - 1) * self.font_size
+                elif line_num % 2 == 1:
+                    cur_x += line_half * self.font_size
+            cur_y = self.portrait(color="black", text=sep, x=cur_x, y=cur_y)
 
 
 def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
-    h.draw(text="")
+    h.draw(x=60, y=0)
 
 
 if __name__ == "__main__":
