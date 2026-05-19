@@ -17,23 +17,23 @@ from PIL import Image, ImageDraw, ImageFont
 
 ps = platform.system().lower()
 
-rank_blank: List[int] = [86, 86, 86, 86]  # 列间隔
-
-wangyunhui: List[List[str]] = [
-    ["孙(男/女)王(骁/云慧)", "祖父王公(讳)汝上老大人一位收用"],
-    ["曾孙(男/女)王(骁/云慧)", "曾祖(父/母)王公(讳)(守玺/怀美)老(大/孺)人二位收用"],
-    ["玄孙(男/女)王(骁/云慧)", "高祖(父/母)王公(讳)(尚安/陈君)老(大/孺)人二位收用"],
+wangzefu: List[List[str]] = [
+    ["孝男王", "泽福/泽录/淼", "孝", "媳/", "廖俊", "孝孙", "男/女", "王", "骁/云慧"], ["故显考王公", "讳/", "汝上老大人一位收用"],
+    ["孙男王", "泽福/泽录/淼", "孙", "媳/", "廖俊", "曾孙", "男/女", "王", "骁/云慧"], ["故祖", "父/母", "王公", "讳/", "守玺/怀美", "老", "大/孺", "人二位收用"],
+    ["曾孙王", "泽福/泽录/淼", "曾孙", "媳/", "廖俊", "玄孙", "男/女", "王", "骁/云慧"], ["故曾祖", "父/母", "王公", "讳/", "尚安/陈君", "老", "大/孺", "人二位收用"],
+    ["曾孙王", "泽福/泽录/淼", "曾孙", "媳/", "廖俊", "玄孙", "男/女", "王", "骁/云慧"], ["故曾祖", "父/母", "王公", "讳/", "尚璋/刘君", "老", "大/孺", "人二位收用"],
+    ["玄孙王", "泽福/泽录/淼", "玄孙", "媳/", "廖俊", "来孙", "男/女", "王", "骁/云慧"], ["故高祖", "父/母", "王公", "讳/", "支和/白君", "老", "大/孺", "人二位收用"],
+    ["玄孙王", "泽福/泽录/淼", "玄孙", "媳/", "廖俊", "来孙", "男/女", "王", "骁/云慧"], ["故高祖", "父/母", "王公", "讳/", "支江/刘君", "老", "大/孺", "人二位收用"],
+    ["来孙王", "泽福/泽录/淼", "来孙", "媳/", "廖俊", "晜孙", "男/女", "王", "骁/云慧"], ["故天祖", "父/母", "王公", "讳/", "万荣/李君", "老", "大/孺", "人二位收用"],
+    ["晜孙王", "泽福/泽录/淼", "晜孙", "媳/", "廖俊", "仍孙", "男/女", "王", "骁/云慧"], ["故烈祖", "父/母", "王公", "讳/", "自元/赵君", "老", "大/孺", "人二位收用"],
+    ["仍孙王", "泽福/泽录/淼", "仍孙", "媳/", "廖俊", "云孙", "男/女", "王", "骁/云慧"], ["故太祖", "父/母", "王公", "讳/", "敏/闫君", "老", "大/孺", "人二位收用"],
+    ["云孙王", "泽福/泽录/淼", "云孙", "媳/", "廖俊", "耳孙", "男/女", "王", "骁/云慧"], ["故远祖", "父/母", "王公", "讳/", "耀德/罗君", "老", "大/孺", "人二位收用"],
+    ["耳孙王", "泽福/泽录/淼", "耳孙", "媳/", "廖俊", "十世孙", "男/女", "王", "骁/云慧"], ["故鼻祖", "父/母", "王公", "讳/", "映爵/罗君", "老", "大/孺", "人二位收用"],
+    ["十世孙王", "泽福/泽录/淼", "十世孙", "媳/", "廖俊", "十一世孙", "男/女", "王", "骁/云慧"], ["故十世祖", "父/母", "王公", "讳/", "述先/汪君", "老", "大/孺", "人二位收用"],
+    ["十一世孙王", "泽福/泽录/淼", "十一世孙", "媳/", "廖俊", "十二世孙", "男/女", "王", "骁/云慧"], ["故十一世祖", "父/母", "王公", "讳/", "西成/谢君/汪君", "老", "大/孺", "人二位收用"],
+    ["十二世孙王", "泽福/泽录/淼", "十二世孙", "媳/", "廖俊", "十三世孙", "男/女", "王", "骁/云慧"], ["故十二世祖", "父/母", "王公", "讳/", "心田/刘君/谢君", "老", "大/孺", "人二位收用"],
+    ["孝男王永", "雄/开/跃", "孝媳", "张秀华/刘方胜/刘翠英", "孝孙", "男/女", "王定海/毛勇/刘位/王雪莲/王雪萍", "孝孙", "媳/婿", "陈晓丽/侯富馨"], ["故慈母王", "宅/", "朱君寄春老", "孺/", "人一位收用"],
 ]
-wangyunhui_size: List[int] = [24, 43, 43, 43, 43]  # 每列文字大小，[0]为最右列
-
-wangxiong: List[List[str]] = [
-    ["百期化钱 孝男王永", "雄/开/跃", "孝媳", "张秀华/刘方胜/刘翠英", "孝孙", "男/女", "王定海/毛勇/刘位/王雪莲/王雪萍", "孝孙", "媳/婿", "陈晓丽/侯富馨", "等具"],
-    ["  谨具冥财 七封奉/上"],
-    ["故慈母王", "宅/", "朱君寄春老", "孺/", "人一位收用"],
-    ["  坟前化纳"],
-    ["天运甲辰年二月十六日敬献"],
-]
-wangxiong_size: List[int] = [24, 43, 43, 43, 43]  # 每列文字大小，[0]为最右列
 
 wangxiao: List[List[str]] = [
     ["酬恩了愿化钱 下民姓氏王永骁"],
@@ -42,22 +42,28 @@ wangxiao: List[List[str]] = [
     ["  ", "保佑清太/吉祥如意", "路旁化帛"],
     ["天运乙巳年闰六月廿九日了愿是实"],
 ]
-wangxiao_size: List[int] = [40, 26, 36, 40, 40]  # 每列文字大小，[0]为最右列
 
 
 class Handle:
-    def __init__(self, content: List[List[str]], size: List[int]):
+    def __init__(self, content: List[List[str]], size: List[int], rank: List[int], img: str):
         self.content = content
         self.font_size = size
-        self.img_path = "/Users/wangxiao/Downloads/1.jpeg"
+        self.rank_blank = rank
+        self.img_path = img
         self.font_path = "/Users/wangxiao/Library/Fonts/KaiTi-YiMa.ttf"
         self.font_path2 = "/Users/wangxiao/Library/Fonts/康熙字典体.otf"
-        self.width = 700
-        self.height = 700
+        self.width = 1000
+        self.height = 800
         self.blank = 10  # 四边空白像素
         self.horizon_count: List[int] = []  # 每列的并排数
         self.vert_count: List[int] = []  # 每列的长度
         self.line_index_x: List[int] = []  # 每一列绘制起点x
+
+    def make_data(self, thing: str, num: str, ti: str):
+        self.content[0].insert(0, thing)
+        self.content.insert(1, [f"  谨具冥财 {num}封奉/上"])
+        self.content.append(["  坟前化纳"])
+        self.content.append([f"天运{ti}敬献"])
 
     def horizontal_count(self):  # 水平方向
         for i, l in enumerate(self.content):
@@ -83,26 +89,27 @@ class Handle:
             self.vert_count.append(char_count)
 
     def gen_font_size(self):
-        vertical_min = (self.height - self.blank * 2) // max(self.vert_count)
-        vertical_max = (self.height - self.blank * 2) // min(self.vert_count)
+        font_size: List[int] = []
+        for i, v in enumerate(self.vert_count):
+            font_size.append((self.height - self.blank * 2) // v)
         horizontal_max = (self.width - self.blank * 2) // sum(self.horizon_count)
-        print(f"\n建议字体最大值（某列）：{max(vertical_max, vertical_min, horizontal_max)}")
-        print(f"建议字体最小值（某列）：{min(vertical_max, vertical_min, horizontal_max)}")
+        font_size = [min(x, horizontal_max) for x in font_size]
+        odd_max = max(font_size[i] for i in range(0, len(font_size), 2))  # 设置奇数列文字尺寸为最大值
+        self.font_size = [min(x, odd_max) for x in font_size]
         print(f"当前字体设置：{self.font_size}")
+
         char_width: int = 0  # 文字一共所占宽度
         for i, s in enumerate(self.font_size):
             char_width += self.horizon_count[i] * s
         blank = (self.width - self.blank * 2 - char_width) // (len(self.content) - 1)
-        print(f"\n建议平均列间隔：{blank}")
-        for i in range(len(rank_blank) - 1):
-            rank_blank[i] = blank
-        print(f"当前列间隔设置：{rank_blank}")
+        self.rank_blank = [blank] * (len(self.content) - 1)
+        print(f"当前列间隔设置：{self.rank_blank}")
 
     def gen_index(self):
         right: int = self.width - self.blank - self.font_size[0]
         for i, f in enumerate(self.font_size):
             if i > 0:
-                right = right - (self.horizon_count[i - 1] - 1) * self.font_size[i - 1] - rank_blank[i - 1] - self.font_size[i]
+                right = right - (self.horizon_count[i - 1] - 1) * self.font_size[i - 1] - self.rank_blank[i - 1] - self.font_size[i]
             left = right - (self.horizon_count[i] - 1) * self.font_size[i]
             self.line_index_x.append(left + (right - left) // 2)
 
@@ -163,14 +170,17 @@ class Handle:
 
 def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
-    h = Handle(wangxiong, wangxiong_size)
-    h.horizontal_count()
-    h.vertical_count()
-
-    h.gen_font_size()
-
-    h.gen_index()
-    h.draw()
+    n = 2  # 每组2个元素
+    newList = [wangzefu[i:i + n] for i in range(0, len(wangzefu), n)]
+    for i, l in enumerate(newList):
+        h = Handle(content=l, size=[0, 0, 0, 0, 0], rank=[0, 0, 0, 0], img=f"/Users/wangxiao/Downloads/{i}.jpeg")
+        h.make_data(thing="中元化钱", num="七", ti="丙午年二月十八日")
+        h.horizontal_count()
+        h.vertical_count()
+        h.gen_font_size()
+        h.gen_index()
+        h.draw()
+        print("")
 
 
 if __name__ == "__main__":
