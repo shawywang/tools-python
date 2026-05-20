@@ -69,7 +69,8 @@ class Handle:
         self.font_path = "/Users/wangxiao/Library/Fonts/康熙字典体.otf"  # KaiTi-YiMa.ttf、康熙字典体.otf、FZLongZhaoJW.TTF
         self.width = 1100
         self.height = 800
-        self.blank = 10  # 四邊空白像素
+        self.up_down = 10  # 外圈空白像素
+        self.left_right = 160  # 外圈空白像素
         self.horizon_count: List[int] = []  # 每列的并排数
         self.vert_count: List[int] = []  # 每列的长度
         self.line_index_x: List[int] = []  # 每一列绘制起点x
@@ -122,8 +123,8 @@ class Handle:
     def gen_font_size(self):
         font_size: List[int] = []
         for i, v in enumerate(self.vert_count):
-            font_size.append((self.height - self.blank * 2) // v)
-        horizontal_max = (self.width - self.blank * 2) // sum(self.horizon_count)
+            font_size.append((self.height - self.up_down * 2) // v)
+        horizontal_max = (self.width - self.left_right * 2) // sum(self.horizon_count)
         font_size = [min(x, horizontal_max) for x in font_size]
         odd_max = max(font_size[i] for i in range(0, len(font_size), 2))  # 设置奇数列文字尺寸为最大值
         self.font_size = [min(x, odd_max) for x in font_size]
@@ -132,12 +133,12 @@ class Handle:
         char_width: int = 0  # 文字一共所占宽度
         for i, s in enumerate(self.font_size):
             char_width += self.horizon_count[i] * s
-        blank = (self.width - self.blank * 2 - char_width) // (len(self.content) - 1)
+        blank = (self.width - self.left_right * 2 - char_width) // (len(self.content) - 1)
         self.rank_blank = [blank] * (len(self.content) - 1)
         print(f"当前列间隔设置：{self.rank_blank}")
 
     def gen_index(self):
-        right: int = self.width - self.blank - self.font_size[0]
+        right: int = self.width - self.left_right - self.font_size[0]
         for i, f in enumerate(self.font_size):
             if i > 0:
                 right = right - (self.horizon_count[i - 1] - 1) * self.font_size[i - 1] - self.rank_blank[i - 1] - self.font_size[i]
@@ -193,8 +194,8 @@ class Handle:
                 continue
             fo = self.get_font(c, self.font_size[i])
             draw.text(xy=(now_x, now_y), text=c, font=fo, fill=color)
-            # 加粗绘制特殊字体（多层绘制）
-            for dx in [-1, 0, 1]:
+            # 加粗绘制（多层绘制）
+            for dx in [-1, 0]:  # 加粗 [-1, 0, 1]
                 draw.text(xy=(now_x + dx, now_y), text=c, font=fo, fill=color)
                 draw.text(xy=(now_x, now_y + dx), text=c, font=fo, fill=color)
 
