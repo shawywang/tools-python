@@ -56,8 +56,8 @@ wangxiao: List[List[str]] = [
     ["天運乙巳年闰六月廿九日了愿是实"],
 ]
 
-char_font2: Set[str] = {"淼", "炜"}
-char_font3: Set[str] = {"晜"}
+char_font2: Set[str] = {"炜"}
+char_font3: Set[str] = set()
 
 
 class Handle:
@@ -78,8 +78,9 @@ class Handle:
 
     def get_font(self, c: str, s: int):
         try:
-            self.fonts[1] = ImageFont.truetype(font="/Users/wangxiao/Library/Fonts/康熙字典体.otf", size=s)
-            self.fonts[2] = ImageFont.truetype(font="/Users/wangxiao/Library/Fonts/FZLongZhaoJW.TTF", size=s)
+            # self.fonts[1] = ImageFont.truetype(font="/Users/wangxiao/Library/Fonts/康熙字典体.otf", size=s)
+            self.fonts[1] = ImageFont.truetype(font="/Users/wangxiao/Documents/github/chinese-fonts-master/華康明體/DFMingStd-W7.otf", size=s)
+            self.fonts[2] = ImageFont.truetype(font="/Users/wangxiao/Documents/github/chinese-fonts-master/雲林黑體/YunlinSans-Regular.ttf", size=s)
             self.fonts[3] = ImageFont.truetype(font="/Users/wangxiao/Library/Fonts/KaiTi-YiMa.ttf", size=s)
         except Exception as e:
             print(f"字体加载失败: {e}")
@@ -155,6 +156,16 @@ class Handle:
             outline="black",
             width=3,  # 邊框宽度
             radius=0,  # 圆角半径
+        )
+        draw.line(
+            xy=[self.left_right - 3, 0, self.left_right - 3, self.height],
+            fill='black',
+            width=2
+        )
+        draw.line(
+            xy=[self.width - self.left_right + 3, 0, self.width - self.left_right + 3, self.height],
+            fill='black',
+            width=2
         )
 
         image.save(
