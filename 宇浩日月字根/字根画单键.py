@@ -13,12 +13,22 @@ from PIL.ImageFont import FreeTypeFont
 
 ps = platform.system().lower()
 
-char_font1: Set[str] = {"⺊", "虍", "鹵", "灬", "馬", "魚", "礻"}  # 文津0
-char_font2: Set[str] = {""}  # 文津2
-char_font3: Set[str] = {"𰁜", "𳑳", }  # 文津3
+# 文津0
+char_font1: Set[str] = {
+    "⺊", "虍", "鹵", "灬", "馬", "魚", "礻", "亅", "𠃌", "㇇", "乚",
+    "㇉", "飛", "來", "氵", "匚", "丂", "㐄", "丿", "龵", "見", "貝",
+    "頁", "丆", "疒", "⺧", "豕", "扌", "丬", "⺌", ""
+}
+char_font2: Set[str] = {"𠄎", "𡿨", "𫶧", "𧰨", "𬺰", "𦣞", "𣥂", "𭕄", ""}  # 文津2
+char_font3: Set[str] = {"𰁜", "𳑳", "𰀁", ""}  # 文津3
 char_font4: Set[str] = {""}  # 遍黑1
-char_font5: Set[str] = {"ㅑ"}  # 遍黑2
-char_font6: Set[str] = {"", ""}  # 宇浩
+char_font5: Set[str] = {"ㅑ", "𘮌", ""}  # 遍黑2
+# 宇浩
+char_font6: Set[str] = {
+    "", "", "", "", "", "", "", "", "", "", "",
+    "", "", "", "", "", "", "", "", "", "", "",
+    "", "", "", ""
+}
 char_font7: Set[str] = {""}  # 98V
 char_font8: Set[str] = {""}  # 98U
 
@@ -134,13 +144,8 @@ class Handle:
         # 绘制字根
         c_color = "black"
         text_line_num = text.count("\n") + 1
-        x, y, c_height = f.get_center_pix(
-            width,
-            height,
-            f=ImageFont.truetype("字根图字体/Dengb.ttf", size=f.size),  # 字符宽高均以等线字体为准
-            text=text.split("\n")[0],
-            line_n=text_line_num,
-        )
+        # 字符宽高均以等线字体为准
+        x, y, c_height = f.get_center_pix(width, height, f=ImageFont.truetype("字根图字体/Dengb.ttf", size=f.size), text=text.split("\n")[0], line_n=text_line_num)
 
         cur_x = x
         cur_y = y
@@ -168,7 +173,7 @@ class Handle:
 
             # 加粗绘制特殊字体（多层绘制）
             if num != 0:
-                for dx in [-1, 0, 1]:
+                for dx in [-1, 0]:  # [-1, 0, 1]
                     draw.text((cur_x + dx, cur_y), c, fill=c_color, font=font)
                     draw.text((cur_x, cur_y + dx), c, fill=c_color, font=font)
 
@@ -212,32 +217,34 @@ def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
 
-    h.draw(FontManager(size=41), back_car="A", symbol="全选", text="了\n")
+    h.draw(FontManager(size=20), back_car="A", symbol="全选", text="了\n")
     h.draw(FontManager(size=20), back_car="B", symbol="；", swipe_down="\\、", text="虎爪示瓜卜亦未末\n𰁜⺊ㅑ𳑳虍鹵灬\n馬魚礻")
-    h.draw(FontManager(size=40), back_car="C", symbol="复制", text="乙世又女马禾生\n")
-    h.draw(FontManager(size=33), back_car="D", symbol="#", text="己言母金口\n已长皮\n")
-    h.draw(FontManager(size=162), back_car="E", symbol="3", text="E")
-    h.draw(FontManager(size=41), back_car="F", symbol="$￥", text="一面手乃\n而牙电甲鱼\n")
-    h.draw(FontManager(size=41), back_car="G", symbol="%℃°", text="目皿厂夭\n广鹿麻儿九牛革\n")
-    h.draw(FontManager(size=33), back_car="H", symbol="!", swipe_down="+", text="下框艮走自其田\n贝页习亥止辰\n")
-    h.draw(FontManager(size=162), back_car="I", symbol="8", text="I")
-    h.draw(FontManager(size=40), back_car="J", symbol="&", swipe_down="-", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n")
-    h.draw(FontManager(size=41), back_car="K", symbol="*・", swipe_down="——", text="八千里\n下弓白臼且框之\n两三撇\n戊丁入古甫辛戈\n")
-    h.draw(FontManager(size=33), back_car="L", symbol="（）", swipe_down="=", text="两三竖\n匕非小方子\n穴高曲向幺\n予了干正欠\n")
-    h.draw(FontManager(size=41), back_car="M", symbol="？", swipe_down="|", text="草不耳七也丑\n")
-    h.draw(FontManager(size=33), back_car="N", symbol="：", text="点月缶壬足\n")
-    h.draw(FontManager(size=162), back_car="O", symbol="9", text="O")
-    h.draw(FontManager(size=33), back_car="P", symbol="0", text="大夫春雨犬\n")
-    h.draw(FontManager(size=41), back_car="Q", symbol="1", text="几虫卯\n")
-    h.draw(FontManager(size=81), back_car="R", symbol="4", text="王毛文立石\n单耳身黑\n")
-    h.draw(FontManager(size=41), back_car="S", symbol="@®©", text="山倒尸用户至隶\n二点片木尤用舌\n")
-    h.draw(FontManager(size=41), back_car="T", symbol="5", text="十巾火衣由尚\n")
-    h.draw(FontManager(size=162), back_car="U", symbol="7", text="U")
-    h.draw(FontManager(size=41), back_car="V", symbol="粘贴", text="土士见山斤米业车\n")
-    h.draw(FontManager(size=33), back_car="W", symbol="2", text="人水合力食申\n")
-    h.draw(FontManager(size=41), back_car="X", symbol="剪切", swipe_down="{", text="羊鸟乌\n")
-    h.draw(FontManager(size=33), back_car="Y", symbol="6", text="竹气西双耳\n")
-    h.draw(FontManager(size=49), back_car="Z", symbol="\"", swipe_down="[", text="[反查]")
+    h.draw(FontManager(size=18), back_car="C", symbol="复制", text="乙世又女禾马生鼠尾\n亅𠃌𠄎㇇乚㇉𡿨\n飛來氵")
+    h.draw(FontManager(size=20), back_car="D", symbol="#", text="己言母金口已长皮\n凵屮彑宀廴")
+    h.draw(FontManager(size=20), back_car="E", symbol="3", text="的")
+    h.draw(FontManager(size=18), back_car="F", symbol="$￥", text="一面手乃而牙电甲鱼\n𘮌匚丂𰀁㐄丿龵")
+    h.draw(FontManager(size=18), back_car="G", symbol="%℃°", text="目皿厂夭广鹿麻儿\n九牛革罒見貝\n頁丆疒𫶧⺧豕𧰨\n扌")
+    h.draw(FontManager(size=20), back_car="H", symbol="!", swipe_down="+", text="下框艮走自其田\n贝页习亥止辰\n冂勹冊龰\n齒")
+    h.draw(FontManager(size=20), back_car="I", symbol="8", text="是")
+    h.draw(FontManager(size=20), back_car="J", symbol="&", swipe_down="-", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n曰𦣞忄丄𬺰\n巛巜咼冎")
+    h.draw(FontManager(size=15), back_car="K", symbol="*・", swipe_down="——", text="八千里下弓白臼且框之\n两三撇戊丁入古甫辛戈\n彳纟弋丬")
+
+    h.draw(FontManager(size=20), back_car="L", symbol="（）", swipe_down="=", text="两三竖匕非小方子\n穴高曲向幺\n予了干正欠\n糹丨〢〣𣥂⺌𭕄\n亠亡兀\n饣辶長镸髟")
+
+    h.draw(FontManager(size=20), back_car="M", symbol="？", swipe_down="|", text="草不耳七也丑\n")
+    h.draw(FontManager(size=20), back_car="N", symbol="：", text="点月缶壬足\n")
+    h.draw(FontManager(size=20), back_car="O", symbol="9", text="O")
+    h.draw(FontManager(size=20), back_car="P", symbol="0", text="大夫春雨犬\n")
+    h.draw(FontManager(size=20), back_car="Q", symbol="1", text="几虫卯\n")
+    h.draw(FontManager(size=20), back_car="R", symbol="4", text="王毛文立石\n单耳身黑\n")
+    h.draw(FontManager(size=20), back_car="S", symbol="@®©", text="山倒尸用户至隶\n二点片木尤用舌\n")
+    h.draw(FontManager(size=20), back_car="T", symbol="5", text="十巾火衣由尚\n")
+    h.draw(FontManager(size=20), back_car="U", symbol="7", text="U")
+    h.draw(FontManager(size=20), back_car="V", symbol="粘贴", text="土士见山斤米业车\n")
+    h.draw(FontManager(size=20), back_car="W", symbol="2", text="人水合力食申\n")
+    h.draw(FontManager(size=20), back_car="X", symbol="剪切", swipe_down="{", text="羊鸟乌\n")
+    h.draw(FontManager(size=20), back_car="Y", symbol="6", text="竹气西双耳\n")
+    h.draw(FontManager(size=20), back_car="Z", symbol="\"", swipe_down="[", text="[反查]")
 
 
 if __name__ == "__main__":
