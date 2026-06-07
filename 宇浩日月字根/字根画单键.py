@@ -17,9 +17,6 @@ width: int = 167
 height: int = 232
 # 小字母
 alpha_font = "字根图字体/WenJinMinchoP0-Regular.ttf"
-alpha_size = 22
-l, t, r, b = ImageFont.truetype(alpha_font, size=alpha_size).getbbox("j")
-alpha_height = b - t
 
 # 文津0
 char_font1: Set[str] = {
@@ -52,9 +49,10 @@ num_key: str = "QWERTYUIOP"
 
 
 class FontManager:
-    def __init__(self, size: int = 33):
+    def __init__(self, size: int = 33, a_size: int = 22):
         self.fonts: Dict[int, FreeTypeFont] = {}
         self.size = size
+        self.alpha_size = a_size
         self.load_font()
 
     def load_font(self):  # 加载字体到管理器
@@ -92,7 +90,7 @@ class FontManager:
         if char in char_font8:
             return self.fonts[8], 8
         if char in "abcdefghijklmnopqrstuvwxyz":
-            return ImageFont.truetype(alpha_font, size=alpha_size), 9
+            return ImageFont.truetype(alpha_font, size=self.alpha_size), 9
         else:
             return ImageFont.truetype("字根图字体/Dengb.ttf", self.size), 0  # 等线，粗
 
@@ -161,6 +159,10 @@ class Handle:
         # 绘制字根
         c_color = "black"
         text_line_num = text.count("\n") + 1
+
+        l, t, r, b = ImageFont.truetype(alpha_font, size=f.alpha_size).getbbox("j")
+        alpha_height = b - t
+
         # 宽，以第一排字符等线字体为准
         x, y, c_height = f.get_center_pix(f=ImageFont.truetype("字根图字体/Dengb.ttf", size=f.size), text=text.split("\n")[0], line_n=text_line_num)
 
@@ -178,7 +180,7 @@ class Handle:
                 elif not last_c_is_alpha and num_p == 0:
                     cur_y += c_height
                 elif not last_c_is_alpha and num_p != 0:
-                    cur_y += (c_height + 8)
+                    cur_y += (c_height + c_height // 4)
                 cur_x = x
                 continue
 
@@ -246,7 +248,7 @@ def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
 
-    h.draw(FontManager(size=90), back_car="A", symbol="全选", text="了")
+    h.draw(FontManager(size=90, a_size=22), back_car="A", symbol="全选", text="了")
     h.draw(FontManager(size=34), back_car="B", symbol="；", swipe_down="", text="虎爪示瓜卜\nhu sa ka ga bu\n亦未末\n i  o  mo\nㅑ𳑳虍鹵\no o          lu\n灬馬魚礻\nbi  ma    e")
     h.draw(FontManager(size=18), back_car="C", symbol="", text="乙世又女禾马生鼠尾\n亅𠃌𠄎㇇乚㇉𡿨\n飛來氵")
     h.draw(FontManager(size=20), back_car="D", symbol="#", text="己言母金口已长皮\n凵屮彑宀廴")
@@ -257,7 +259,8 @@ def main():
     h.draw(FontManager(size=20), back_car="I", symbol="8", text="是")
     h.draw(FontManager(size=20), back_car="J", symbol="&", swipe_down="", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n曰𦣞忄丄𬺰\n巛巜咼冎")
     h.draw(FontManager(size=15), back_car="K", symbol="*・", swipe_down="", text="八千里下弓白臼且框之\n两三撇戊丁入古甫辛戈\n彳纟弋丬")
-    h.draw(FontManager(size=20), back_car="L", symbol="（）", swipe_down="", text="两三竖匕非小方子\n穴高曲向幺\n予了干正欠\n糹丨〢〣𣥂⺌𭕄\n亠亡兀\n饣辶長镸髟")
+    h.draw(FontManager(size=20, a_size=15), back_car="L", symbol="（）", swipe_down="", text="匕非小方子穴高曲\nbi fo xi fe zi xe gi qe\n向幺予了干正欠\nxo i e le ga se qi\n糹丨〢〣𣥂⺌𭕄\nsi gi  o    xi\n亠亡兀\nte  o lo u  gi\n饣辶長镸髟\nka xo ro re")
+
     h.draw(FontManager(size=20), back_car="M", symbol="？", swipe_down="", text="草不耳七也丑\n𠀎龷卅卌𠂇\n冖⺈𫠠乜コ\n𠂤")
     h.draw(FontManager(size=20), back_car="N", symbol="：", text="点月缶壬足\n丶𱼀亍厶")
     h.draw(FontManager(size=20), back_car="O", symbol="9", text="我")
