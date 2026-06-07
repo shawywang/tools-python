@@ -12,32 +12,16 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageFont import FreeTypeFont
 
 ps = platform.system().lower()
-char_font2: Set[str] = {
-    "󰁰", "", "",
-    "", "", "", "", "",
-    "", "", "", "", "", "", "", "",
-    "", "", "",
-    "", "𰀃", "",
-    "", "", "",
-    "衤", "", "", "",
-    "", "", "", "",
-    "", "", "", "",
-    "", "󰀠", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "", "",
-    "", "",
-    "", "",
-    "", "",
-    "", "",
-    "𰀆", "", "", "",
-    "", "", "", "󰁹", "卩",
-    "", "", "",
-    "", "", "",
-}
-char_font3: Set[str] = {
-    "𦫻", "𢀖", "𦭝", "𣎆", "𭤨", "𬜠", "𡨄", "𠮦", "𠂔", "𠔿", "𡭔",
-}
+
+char_font1: Set[str] = {"⺊", "虍", "鹵", "灬", "馬", "魚", "礻"}  # 文津0
+char_font2: Set[str] = {""}  # 文津2
+char_font3: Set[str] = {"𰁜", "𳑳", }  # 文津3
+char_font4: Set[str] = {""}  # 遍黑1
+char_font5: Set[str] = {"ㅑ"}  # 遍黑2
+char_font6: Set[str] = {"", ""}  # 宇浩
+char_font7: Set[str] = {""}  # 98V
+char_font8: Set[str] = {""}  # 98U
+
 back_car_orange: str = "QWERTASDFGZXCVB"
 num_key: str = "QWERTYUIOP"
 
@@ -50,9 +34,14 @@ class FontManager:
 
     def load_font(self):  # 加载字体到管理器
         try:
-            self.fonts[1] = ImageFont.truetype("字根图字体/Dengb.ttf", self.size)  # 等线，粗
-            self.fonts[2] = ImageFont.truetype("字根图字体/98WB-V.otf", self.size)
-            self.fonts[3] = ImageFont.truetype("字根图字体/98WB-U.otf", self.size)
+            self.fonts[1] = ImageFont.truetype("字根图字体/WenJinMinchoP0-Regular.ttf", self.size)
+            self.fonts[2] = ImageFont.truetype("字根图字体/WenJinMinchoP2-Regular.ttf", self.size)
+            self.fonts[3] = ImageFont.truetype("字根图字体/WenJinMinchoP3-Regular.ttf", self.size)
+            self.fonts[4] = ImageFont.truetype("字根图字体/PlangothicP1-Regular.ttf", self.size)
+            self.fonts[5] = ImageFont.truetype("字根图字体/PlangothicP2-Regular.ttf", self.size)
+            self.fonts[6] = ImageFont.truetype("字根图字体/Yuniversus.ttf", self.size)
+            self.fonts[7] = ImageFont.truetype("字根图字体/98WB-V.otf", self.size)
+            self.fonts[8] = ImageFont.truetype("字根图字体/98WB-U.otf", self.size)
         except OSError as e:
             print(f"字体加载失败，文件问题：{e}")
             sys.exit(-1)
@@ -61,12 +50,24 @@ class FontManager:
             sys.exit(-1)
 
     def get_font_for_char(self, char):
+        if char in char_font1:
+            return self.fonts[1], 1
         if char in char_font2:
             return self.fonts[2], 2
         if char in char_font3:
             return self.fonts[3], 3
+        if char in char_font4:
+            return self.fonts[4], 4
+        if char in char_font5:
+            return self.fonts[5], 5
+        if char in char_font6:
+            return self.fonts[6], 6
+        if char in char_font7:
+            return self.fonts[7], 7
+        if char in char_font8:
+            return self.fonts[8], 8
         else:
-            return self.fonts[1], 1
+            return ImageFont.truetype("字根图字体/Dengb.ttf", self.size), 0  # 等线，粗
 
     def get_center_pix(self, width, height: int, f: FreeTypeFont, text: str, line_n: int = 1):
         left, top, right, bottom = f.getbbox(text)
@@ -166,7 +167,7 @@ class Handle:
                 draw.text((cur_x, cur_y), c, fill=c_color, font=font)
 
             # 加粗绘制特殊字体（多层绘制）
-            if num != 1:
+            if num != 0:
                 for dx in [-1, 0, 1]:
                     draw.text((cur_x + dx, cur_y), c, fill=c_color, font=font)
                     draw.text((cur_x, cur_y + dx), c, fill=c_color, font=font)
@@ -212,7 +213,7 @@ def main():
     h = Handle()
 
     h.draw(FontManager(size=41), back_car="A", symbol="全选", text="了\n")
-    h.draw(FontManager(size=41), back_car="B", symbol="；", swipe_down="\\、", text="虎爪示瓜卜\n亦未末\n")
+    h.draw(FontManager(size=20), back_car="B", symbol="；", swipe_down="\\、", text="虎爪示瓜卜亦未末\n𰁜⺊ㅑ𳑳虍鹵灬\n馬魚礻")
     h.draw(FontManager(size=40), back_car="C", symbol="复制", text="乙世又女马禾生\n")
     h.draw(FontManager(size=33), back_car="D", symbol="#", text="己言母金口\n已长皮\n")
     h.draw(FontManager(size=162), back_car="E", symbol="3", text="E")
