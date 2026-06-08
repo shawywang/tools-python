@@ -90,7 +90,7 @@ class FontManager:
         if char in char_font8:
             return self.fonts[8], 8
         if char in "abcdefghijklmnopqrstuvwxyz":
-            return ImageFont.truetype(alpha_font, size=self.alpha_size), 9
+            return ImageFont.truetype(alpha_font, size=self.alpha_size), 0
         else:
             return ImageFont.truetype("字根图字体/Dengb.ttf", self.size), 0  # 等线，粗
 
@@ -118,7 +118,7 @@ class Handle:
     def __init__(self):
         pass
 
-    def draw(self, f: FontManager, back_car, symbol, text: str, swipe_down: str = ""):
+    def draw(self, f: FontManager, back_car, text: str):
         image = Image.new("RGB", (width, height), "white")
         draw = ImageDraw.Draw(image)
 
@@ -139,22 +139,6 @@ class Handle:
         back_color = (255, 204, 153) if back_car in back_car_orange else (221, 221, 221)
         b_x, b_y, b_height = f.get_center_pix(f=back_font, text=back_car)
         draw.text(xy=(b_x, b_y - 90), text=back_car, fill=back_color, font=back_font)
-        # 绘制长按符号
-        long_font = ImageFont.truetype(font="字根图字体/msyhbd.ttc", size=28)  # r"C:\Windows\Fonts\dengb.ttf"
-        long_font2 = ImageFont.truetype(font="字根图字体/msyhbd.ttc", size=40)
-        if back_car in num_key:  # 数字置顶
-            draw.text(xy=(round(width / 2) - 7, -6), text=symbol, fill=(255, 0, 0), font=long_font)
-        elif back_car in "AXCV":  # 汉字：全选复制粘贴剪切
-            draw.text(xy=(width - 58, height - 30), text=symbol, fill=(255, 0, 0), font=long_font)
-        elif back_car in "GS":  # 多个符号，特殊
-            draw.text(xy=(width - 80, height - 33), text=symbol, fill=(255, 0, 0), font=long_font)
-        elif back_car in "FKL":  # 多个符号
-            draw.text(xy=(width - 60, height - 45), text=symbol, fill=(255, 0, 0), font=long_font2)
-        else:  # 单个符号
-            draw.text(xy=(width - 43, height - 47), text=symbol, fill=(255, 0, 0), font=long_font2)
-        # 绘制下滑符号
-        if swipe_down != "":
-            draw.text(xy=(7, height - 50), text=swipe_down, fill=(26, 170, 47), font=long_font2)
 
         # 绘制字根
         c_color = "black"
@@ -197,7 +181,7 @@ class Handle:
                     draw.text((cur_x, cur_y), c, fill=c_color, font=font)
 
             # 加粗绘制特殊字体（多层绘制）
-            if num == -1:
+            if num != 0:
                 for dx in [-1, 0]:  # [-1, 0, 1]
                     draw.text((cur_x + dx, cur_y), c, fill=c_color, font=font)
                     draw.text((cur_x, cur_y + dx), c, fill=c_color, font=font)
@@ -241,7 +225,7 @@ class Handle:
 def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
-    h.draw(FontManager(size=36, a_size=24), back_car="A", symbol="全选", text="了")
+    h.draw(FontManager(size=36, a_size=24), back_car="A", text="了")
     tb: str = (
         "ㅑ𳑳虍\n"
         " o  o  hu\n"
@@ -250,7 +234,7 @@ def main():
         "魚礻\n"
         "e  ka"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="B", symbol="；", swipe_down="", text=tb)
+    h.draw(FontManager(size=36, a_size=24), back_car="B", text=tb)
     # -----------------
     tc: str = (
         "亅𠃌𠄎㇇\n"
@@ -259,7 +243,7 @@ def main():
         "飛來氵\n"
         "fo  le o ko"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="C", symbol="", text=tc)
+    h.draw(FontManager(size=36, a_size=24), back_car="C", text=tc)
     # -----------------
     td: str = (
         "凵屮\n"
@@ -267,9 +251,9 @@ def main():
         "彑宀廴〇\n"
         "ji  me o  li"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="D", symbol="#", text=td)
+    h.draw(FontManager(size=36, a_size=24), back_car="D", text=td)
     # -----------------
-    h.draw(FontManager(size=36, a_size=24), back_car="E", symbol="3", text="的")
+    h.draw(FontManager(size=36, a_size=24), back_car="E", text="的")
     tf: str = (
         "𘮌丂匚\n"
         "ki      fe\n"
@@ -278,7 +262,7 @@ def main():
         "龵\n"
         "ke"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="F", symbol="$￥", text=tf)
+    h.draw(FontManager(size=36, a_size=24), back_car="F", text=tf)
     # -----------------
     tg: str = (
         "頁丆見貝\n"
@@ -290,7 +274,7 @@ def main():
         "豕𧰨\n"
         "ka"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="G", symbol="%℃°", text=tg)
+    h.draw(FontManager(size=36, a_size=24), back_car="G", text=tg)
     # -----------------
     th: str = (
         "冂勹\n"
@@ -298,9 +282,9 @@ def main():
         "冊龰齒\n"
         "ge ce si ri"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="H", symbol="!", swipe_down="", text=th)
+    h.draw(FontManager(size=36, a_size=24), back_car="H", text=th)
     # -----------------
-    h.draw(FontManager(size=36, a_size=24), back_car="I", symbol="8", text="是")
+    h.draw(FontManager(size=36, a_size=24), back_car="I", text="是")
     tj: str = (
         "曰𦣞\n"
         " e   i\n\n"
@@ -311,7 +295,7 @@ def main():
         "\n"
         "fu si"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="J", symbol="&", swipe_down="", text=tj)
+    h.draw(FontManager(size=36, a_size=24), back_car="J", text=tj)
     # -----------------
     tk: str = (
         "彡𰀪纟\n"
@@ -321,7 +305,7 @@ def main():
         "丬\n"
         "qo"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="K", symbol="*・", swipe_down="", text=tk)
+    h.draw(FontManager(size=36, a_size=24), back_car="K", text=tk)
     # -----------------
     tl: str = (
         "〢〣亡\n"
@@ -333,7 +317,7 @@ def main():
         "饣丨\n"
         "gi ka xo gi"
     )
-    h.draw(FontManager(size=28, a_size=20), back_car="L", symbol="（）", swipe_down="", text=tl)
+    h.draw(FontManager(size=28, a_size=20), back_car="L", text=tl)
     # -----------------
     tm: str = (
         "コ冖⺈\n"
@@ -345,20 +329,20 @@ def main():
         "𠂤\n"
         "u do"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="M", symbol="？", swipe_down="", text=tm)
+    h.draw(FontManager(size=36, a_size=24), back_car="M", text=tm)
     # -----------------
     tn: str = (
         "𱼀亍厶\n"
         " e  o  ru si"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="N", symbol="：", text=tn)
+    h.draw(FontManager(size=36, a_size=24), back_car="N", text=tn)
     # -----------------
-    h.draw(FontManager(size=36, a_size=24), back_car="O", symbol="9", text="我")
+    h.draw(FontManager(size=36, a_size=24), back_car="O", text="我")
     tp: str = (
         "犭豸\n"
         "qi si"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="P", symbol="0", text=tp)
+    h.draw(FontManager(size=36, a_size=24), back_car="P", text=tp)
     # -----------------
     tq: str = (
         "殳風丱\n"
@@ -368,7 +352,7 @@ def main():
         "丩\n"
         " o"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="Q", symbol="1", text=tq)
+    h.draw(FontManager(size=36, a_size=24), back_car="Q", text=tq)
     # -----------------
     tr: str = (
         "烏鳥\n"
@@ -376,21 +360,21 @@ def main():
         "車門鬥丌\n"
         "re me de ji"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="R", symbol="4", text=tr)
+    h.draw(FontManager(size=36, a_size=24), back_car="R", text=tr)
     # -----------------
     ts: str = (
         "爿尢\n"
         "pa  o"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="S", symbol="@®©", text=ts)
+    h.draw(FontManager(size=36, a_size=24), back_car="S", text=ts)
     # -----------------
     tt: str = (
         "衤龸攵\n"
         "i   o  pe\n"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="T", symbol="5", text=tt)
+    h.draw(FontManager(size=36, a_size=24), back_car="T", text=tt)
     # -----------------
-    h.draw(FontManager(size=36, a_size=24), back_car="U", symbol="7", text="不")
+    h.draw(FontManager(size=36, a_size=24), back_car="U", text="不")
     tv: str = (
         "龶壴戶讠\n"
         "ke su hu e\n\n"
@@ -399,7 +383,7 @@ def main():
         "𠂆乂𠂭\n"
         "o   i\n"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="V", symbol="粘贴", text=tv)
+    h.draw(FontManager(size=36, a_size=24), back_car="V", text=tv)
     # -----------------
     tw: str = (
         "僉隹\n"
@@ -407,21 +391,21 @@ def main():
         "禺\n"
         " e"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="W", symbol="2", text=tw)
+    h.draw(FontManager(size=36, a_size=24), back_car="W", text=tw)
     # -----------------
     tx: str = (
         "リ钅\n"
         "ci  jo"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="X", symbol="剪切", swipe_down="", text=tx)
+    h.draw(FontManager(size=36, a_size=24), back_car="X", text=tx)
     # -----------------
     ty: str = (
         "𠂉酉刂\n"
         " o su  u di"
     )
-    h.draw(FontManager(size=36, a_size=24), back_car="Y", symbol="6", text=ty)
+    h.draw(FontManager(size=36, a_size=24), back_car="Y", text=ty)
     # -----------------
-    h.draw(FontManager(size=36, a_size=24), back_car="Z", symbol="\"", swipe_down="", text="[反查]")
+    h.draw(FontManager(size=36, a_size=24), back_car="Z", text="[反查]")
 
 
 if __name__ == "__main__":
