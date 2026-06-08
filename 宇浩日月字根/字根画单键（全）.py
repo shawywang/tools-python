@@ -39,7 +39,7 @@ char_font6: Set[str] = {
     "", "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", ""
+    "", "", "", "", ""
 }
 char_font7: Set[str] = {""}  # 98V
 char_font8: Set[str] = {""}  # 98U
@@ -247,57 +247,32 @@ class Handle:
 def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
+
     h.draw(FontManager(size=90, a_size=22), back_car="A", symbol="全选", text="了")
+    h.draw(FontManager(size=34), back_car="B", symbol="；", swipe_down="", text="虎爪示瓜卜\nhu sa ka ga bu\n亦未末\n i  o  mo\nㅑ𳑳虍鹵\no o          lu\n灬馬魚礻\nbi  ma    e")
+    h.draw(FontManager(size=18), back_car="C", symbol="", text="乙世又女禾马生鼠尾\n亅𠃌𠄎㇇乚㇉𡿨\n飛來氵")
+    h.draw(FontManager(size=20), back_car="D", symbol="#", text="己言母金口已长皮\n凵屮彑宀廴")
+    h.draw(FontManager(size=20), back_car="E", symbol="3", text="的")
+    h.draw(FontManager(size=18), back_car="F", symbol="$￥", text="一面手乃而牙电甲鱼\n𘮌匚丂𰀁㐄丿龵")
+    h.draw(FontManager(size=18), back_car="G", symbol="%℃°", text="目皿厂夭广鹿麻儿\n九牛革罒見貝\n頁丆疒𫶧⺧豕𧰨\n扌")
+    h.draw(FontManager(size=20), back_car="H", symbol="!", swipe_down="", text="下框艮走自其田\n贝页习亥止辰\n冂勹冊龰\n齒")
+    h.draw(FontManager(size=20), back_car="I", symbol="8", text="是")
+    h.draw(FontManager(size=20), back_car="J", symbol="&", swipe_down="", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n曰𦣞忄丄𬺰\n巛巜咼冎")
+    h.draw(FontManager(size=15), back_car="K", symbol="*・", swipe_down="", text="八千里下弓白臼且框之\n两三撇戊丁入古甫辛戈\n彳纟弋丬")
+    h.draw(FontManager(size=20, a_size=15), back_car="L", symbol="（）", swipe_down="", text="匕非小方子穴高曲\nbi fo xi fe zi xe gi qe\n向幺予了干正欠\nxo i e le ga se qi\n糹丨〢〣𣥂⺌𭕄\nsi gi  o    xi\n亠亡兀\nte  o lo u  gi\n饣辶長镸髟\nka xo ro re")
 
-    tb: str = (
-        "ㅑ𳑳虍\n"
-        " o  o  hu\n"
-        "鹵灬馬\n"
-        "lu bi  ma\n"
-        "魚礻\n"
-        "e  ka"
-    )
-    h.draw(FontManager(size=36, a_size=24), back_car="B", symbol="；", swipe_down="", text=tb)
-
-    tc: str = (
-        "亅𠃌𠄎㇇\n"
-        "乚㇉𡿨\n"
-        "i\n"
-        "飛來氵\n"
-        "fo  le o ko"
-    )
-    h.draw(FontManager(size=36, a_size=24), back_car="C", symbol="", text=tc)
-
-    td: str = (
-        "凵屮\n"
-        "o\n"
-        "彑宀廴〇\n"
-        "ji  me o  li"
-    )
-    h.draw(FontManager(size=36, a_size=24), back_car="D", symbol="#", text=td)
-
-    h.draw(FontManager(size=36, a_size=24), back_car="E", symbol="3", text="的")
-
-    h.draw(FontManager(size=36, a_size=24), back_car="F", symbol="$￥", text="一面手乃而牙电甲鱼\n𘮌匚丂𰀁㐄丿龵")
-    h.draw(FontManager(size=36, a_size=24), back_car="G", symbol="%℃°", text="目皿厂夭广鹿麻儿\n九牛革罒見貝\n頁丆疒𫶧⺧豕𧰨\n扌")
-    h.draw(FontManager(size=36, a_size=24), back_car="H", symbol="!", swipe_down="", text="下框艮走自其田\n贝页习亥止辰\n冂勹冊龰\n齒")
-    h.draw(FontManager(size=36, a_size=24), back_car="I", symbol="8", text="是")
-    h.draw(FontManager(size=36, a_size=24), back_car="J", symbol="&", swipe_down="", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n曰𦣞忄丄𬺰\n巛巜咼冎")
-    h.draw(FontManager(size=36, a_size=24), back_car="K", symbol="*・", swipe_down="", text="八千里下弓白臼且框之\n两三撇戊丁入古甫辛戈\n彳纟弋丬")
-    h.draw(FontManager(size=36, a_size=24), back_car="L", symbol="（）", swipe_down="", text="匕非小方子穴高曲\nbi fo xi fe zi xe gi qe\n向幺予了干正欠\nxo i e le ga se qi\n糹丨〢〣𣥂⺌𭕄\nsi gi  o    xi\n亠亡兀\nte  o lo u  gi\n饣辶長镸髟\nka xo ro re")
-
-    h.draw(FontManager(size=36, a_size=24), back_car="M", symbol="？", swipe_down="", text="草不耳七也丑\n𠀎龷卅卌𠂇\n冖⺈𫠠乜コ\n𠂤")
-    h.draw(FontManager(size=36, a_size=24), back_car="N", symbol="：", text="点月缶壬足\n丶𱼀亍厶")
-    h.draw(FontManager(size=36, a_size=24), back_car="O", symbol="9", text="我")
-    h.draw(FontManager(size=36, a_size=24), back_car="P", symbol="0", text="大夫春雨犬\n犭豸")
-    h.draw(FontManager(size=36, a_size=24), back_car="Q", symbol="1", text="几虫卯殳風𠂎\nho\n𱍸丱丩")
-    h.draw(FontManager(size=36, a_size=24), back_car="R", symbol="4", text="王毛文立石单耳身黑\n丌車烏門鬥")
-    h.draw(FontManager(size=36, a_size=24), back_car="S", symbol="@®©", text="山倒尸用户至隶\n二点片木尤用舌\n爿尢")
-    h.draw(FontManager(size=36, a_size=24), back_car="T", symbol="5", text="十巾火衣由尚\n衤龸攵")
-    h.draw(FontManager(size=36, a_size=24), back_car="U", symbol="7", text="不")
-    h.draw(FontManager(size=36, a_size=24), back_car="V", symbol="粘贴", text="土士见山斤米业车\n龶耂壴乂𠂭ス龴\n癶𠂆戶讠")
-    h.draw(FontManager(size=36, a_size=24), back_car="W", symbol="2", text="人水合力食申\n僉隹禺")
-    h.draw(FontManager(size=36, a_size=24), back_car="X", symbol="剪切", swipe_down="", text="羊鸟乌䒑丷リ\n𦍌𢆉钅")
+    h.draw(FontManager(size=20), back_car="M", symbol="？", swipe_down="", text="草不耳七也丑\n𠀎龷卅卌𠂇\n冖⺈𫠠乜コ\n𠂤")
+    h.draw(FontManager(size=20), back_car="N", symbol="：", text="点月缶壬足\n丶𱼀亍厶")
+    h.draw(FontManager(size=20), back_car="O", symbol="9", text="我")
+    h.draw(FontManager(size=20), back_car="P", symbol="0", text="大夫春雨犬\n犭豸")
+    h.draw(FontManager(size=20), back_car="Q", symbol="1", text="几虫卯殳風𠂎\nho\n𱍸丱丩")
+    h.draw(FontManager(size=18), back_car="R", symbol="4", text="王毛文立石单耳身黑\n丌車烏門鬥")
+    h.draw(FontManager(size=20), back_car="S", symbol="@®©", text="山倒尸用户至隶\n二点片木尤用舌\n爿尢")
+    h.draw(FontManager(size=20), back_car="T", symbol="5", text="十巾火衣由尚\n衤龸攵")
+    h.draw(FontManager(size=20), back_car="U", symbol="7", text="不")
+    h.draw(FontManager(size=20), back_car="V", symbol="粘贴", text="土士见山斤米业车\n龶耂壴乂𠂭ス龴\n癶𠂆戶讠")
+    h.draw(FontManager(size=20), back_car="W", symbol="2", text="人水合力食申\n僉隹禺")
+    h.draw(FontManager(size=20), back_car="X", symbol="剪切", swipe_down="", text="羊鸟乌䒑丷リ\n𦍌𢆉钅")
 
     h.draw(FontManager(size=20), back_car="Y", symbol="6", text="竹气西双耳\n𠂉酉刂")
     h.draw(FontManager(size=20), back_car="Z", symbol="\"", swipe_down="", text="[反查]")
