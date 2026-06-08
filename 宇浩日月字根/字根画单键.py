@@ -16,7 +16,7 @@ ps = platform.system().lower()
 width: int = 167
 height: int = 232
 # 小字母
-alpha_font = "字根图字体/WenJinMinchoP0-Regular.ttf"
+alpha_font = "字根图字体/MONACO.TTF"
 
 # 文津0
 char_font1: Set[str] = {
@@ -24,24 +24,24 @@ char_font1: Set[str] = {
     "㇉", "飛", "來", "氵", "匚", "丂", "㐄", "丿", "龵", "見", "貝",
     "頁", "丆", "疒", "⺧", "豕", "扌", "丬", "⺌", "龷", "卅", "卌",
     "𠂇", "冖", "⺈", "乜", "コ", "丶", "亍", "厶", "钅", "𠂉", "酉",
-    "刂"
+    "刂", "罒", "丩", ""
 }
 # 文津2
 char_font2: Set[str] = {
     "𠄎", "𡿨", "𫶧", "𧰨", "𬺰", "𦣞", "𣥂", "𭕄", "𠀎", "𫠠", "𠂤",
-    "𠂭", "𠂆", "𦍌", "𢆉"
+    "𠂭", "𠂆", "𦍌", "𢆉", ""
 }
-char_font3: Set[str] = {"𰁜", "𳑳", "𰀁", "𱼀", }  # 文津3
-char_font4: Set[str] = {"𠂎", }  # 遍黑1
-char_font5: Set[str] = {"ㅑ", "𘮌", "𱍸", }  # 遍黑2
+char_font3: Set[str] = {"𰁜", "𳑳", "𰀁", "𱼀", ""}  # 文津3
+char_font4: Set[str] = {"𠂎", ""}  # 遍黑1
+char_font5: Set[str] = {"ㅑ", "𘮌", "𱍸", ""}  # 遍黑2
 # 宇浩
 char_font6: Set[str] = {
-    "", "", "", "", "", "", "", "", "", "", "",
+    "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", ""
+    "", "", "", "", "", "", "", "", "", "", ""
 }
-char_font7: Set[str] = {""}  # 98V
+char_font7: Set[str] = {"𰀪"}  # 98V
 char_font8: Set[str] = {""}  # 98U
 
 back_car_orange: str = "QWERTASDFGZXCVB"
@@ -171,16 +171,10 @@ class Handle:
         last_c_is_alpha: bool = False
         for i, c in enumerate(text):
             if c == '\n':
-                _, num_l = f.get_font_for_char(text[i + 1])
-                _, num_p = f.get_font_for_char(text[i - 1])
-                if last_c_is_alpha and num_l == 0:
-                    cur_y += alpha_height
-                elif last_c_is_alpha and num_l != 0:
+                if last_c_is_alpha:
                     cur_y += (alpha_height // 2)
-                elif not last_c_is_alpha and num_p == 0:
-                    cur_y += c_height
-                elif not last_c_is_alpha and num_p != 0:
-                    cur_y += (c_height + c_height // 4)
+                elif not last_c_is_alpha:
+                    cur_y += (c_height + c_height // 3)
                 cur_x = x
                 continue
 
@@ -247,8 +241,7 @@ class Handle:
 def main():
     # print(f"CairoSVG版本：{cairosvg.__version__}")
     h = Handle()
-    h.draw(FontManager(size=90, a_size=22), back_car="A", symbol="全选", text="了")
-
+    h.draw(FontManager(size=36, a_size=24), back_car="A", symbol="全选", text="了")
     tb: str = (
         "ㅑ𳑳虍\n"
         " o  o  hu\n"
@@ -258,7 +251,7 @@ def main():
         "e  ka"
     )
     h.draw(FontManager(size=36, a_size=24), back_car="B", symbol="；", swipe_down="", text=tb)
-
+    # -----------------
     tc: str = (
         "亅𠃌𠄎㇇\n"
         "乚㇉𡿨\n"
@@ -267,40 +260,168 @@ def main():
         "fo  le o ko"
     )
     h.draw(FontManager(size=36, a_size=24), back_car="C", symbol="", text=tc)
-
+    # -----------------
     td: str = (
         "凵屮\n"
-        "o\n"
+        "o\n\n"
         "彑宀廴〇\n"
         "ji  me o  li"
     )
     h.draw(FontManager(size=36, a_size=24), back_car="D", symbol="#", text=td)
-
+    # -----------------
     h.draw(FontManager(size=36, a_size=24), back_car="E", symbol="3", text="的")
-
-    h.draw(FontManager(size=36, a_size=24), back_car="F", symbol="$￥", text="一面手乃而牙电甲鱼\n𘮌匚丂𰀁㐄丿龵")
-    h.draw(FontManager(size=36, a_size=24), back_car="G", symbol="%℃°", text="目皿厂夭广鹿麻儿\n九牛革罒見貝\n頁丆疒𫶧⺧豕𧰨\n扌")
-    h.draw(FontManager(size=36, a_size=24), back_car="H", symbol="!", swipe_down="", text="下框艮走自其田\n贝页习亥止辰\n冂勹冊龰\n齒")
+    tf: str = (
+        "𘮌丂匚\n"
+        "ki      fe\n"
+        "𰀁㐄丿\n"
+        " o         pe\n"
+        "龵\n"
+        "ke"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="F", symbol="$￥", text=tf)
+    # -----------------
+    tg: str = (
+        "頁丆見貝\n"
+        " e  a  je bo\n"
+        "罒𫶧\n"
+        " o\n"
+        "⺧疒扌\n"
+        "nu lu ne ke\n"
+        "豕𧰨\n"
+        "ka"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="G", symbol="%℃°", text=tg)
+    # -----------------
+    th: str = (
+        "冂勹\n"
+        "o\n\n"
+        "冊龰齒\n"
+        "ge ce si ri"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="H", symbol="!", swipe_down="", text=th)
+    # -----------------
     h.draw(FontManager(size=36, a_size=24), back_car="I", symbol="8", text="是")
-    h.draw(FontManager(size=36, a_size=24), back_car="J", symbol="&", swipe_down="", text="日早鬼门心巴骨上\n瓦工寸刀丰\n夕舟川臣矢巳\n曰𦣞忄丄𬺰\n巛巜咼冎")
-    h.draw(FontManager(size=36, a_size=24), back_car="K", symbol="*・", swipe_down="", text="八千里下弓白臼且框之\n两三撇戊丁入古甫辛戈\n彳纟弋丬")
-    h.draw(FontManager(size=36, a_size=24), back_car="L", symbol="（）", swipe_down="", text="匕非小方子穴高曲\nbi fo xi fe zi xe gi qe\n向幺予了干正欠\nxo i e le ga se qi\n糹丨〢〣𣥂⺌𭕄\nsi gi  o    xi\n亠亡兀\nte  o lo u  gi\n饣辶長镸髟\nka xo ro re")
-
-    h.draw(FontManager(size=36, a_size=24), back_car="M", symbol="？", swipe_down="", text="草不耳七也丑\n𠀎龷卅卌𠂇\n冖⺈𫠠乜コ\n𠂤")
-    h.draw(FontManager(size=36, a_size=24), back_car="N", symbol="：", text="点月缶壬足\n丶𱼀亍厶")
+    tj: str = (
+        "曰𦣞\n"
+        " e   i\n\n"
+        "忄丄咼冎\n"
+        "fu xo ga\n\n"
+        "巛巜𬺰\n"
+        "ri     o\n"
+        "\n"
+        "fu si"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="J", symbol="&", swipe_down="", text=tj)
+    # -----------------
+    tk: str = (
+        "彡𰀪纟\n"
+        "ka     si\n\n"
+        "弋彳\n"
+        " i  ri o      qo\n"
+        "丬\n"
+        "qo"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="K", symbol="*・", swipe_down="", text=tk)
+    # -----------------
+    tl: str = (
+        "〢〣亡\n"
+        " o\n\n"
+        "亠𣥂⺌𭕄\n"
+        "lo te xi\n\n"
+        "辶髟兀糹長镸\n"
+        "ro bi u si re\n\n"
+        "饣丨\n"
+        "gi ka xo gi"
+    )
+    h.draw(FontManager(size=28, a_size=20), back_car="L", symbol="（）", swipe_down="", text=tl)
+    # -----------------
+    tm: str = (
+        "コ冖⺈\n"
+        " o\n"
+        "乜卅卌\n"
+        " o  me sa xi\n\n"
+        "𠂇𫠠龷𠀎\n"
+        " zo qi ci\n"
+        "𠂤\n"
+        "u do"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="M", symbol="？", swipe_down="", text=tm)
+    # -----------------
+    tn: str = (
+        "𱼀亍厶\n"
+        " e  o  ru si"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="N", symbol="：", text=tn)
+    # -----------------
     h.draw(FontManager(size=36, a_size=24), back_car="O", symbol="9", text="我")
-    h.draw(FontManager(size=36, a_size=24), back_car="P", symbol="0", text="大夫春雨犬\n犭豸")
-    h.draw(FontManager(size=36, a_size=24), back_car="Q", symbol="1", text="几虫卯殳風𠂎\nho\n𱍸丱丩")
-    h.draw(FontManager(size=36, a_size=24), back_car="R", symbol="4", text="王毛文立石单耳身黑\n丌車烏門鬥")
-    h.draw(FontManager(size=36, a_size=24), back_car="S", symbol="@®©", text="山倒尸用户至隶\n二点片木尤用舌\n爿尢")
-    h.draw(FontManager(size=36, a_size=24), back_car="T", symbol="5", text="十巾火衣由尚\n衤龸攵")
+    tp: str = (
+        "犭豸\n"
+        "qi si"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="P", symbol="0", text=tp)
+    # -----------------
+    tq: str = (
+        "殳風丱\n"
+        "ku fe gi mi\n\n"
+        "𱍸𠂎\n"
+        " o\n"
+        "丩\n"
+        " o"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="Q", symbol="1", text=tq)
+    # -----------------
+    tr: str = (
+        "烏鳥\n"
+        " u     ni\n\n"
+        "車門鬥丌\n"
+        "re me de ji"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="R", symbol="4", text=tr)
+    # -----------------
+    ts: str = (
+        "爿尢\n"
+        "pa  o"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="S", symbol="@®©", text=ts)
+    # -----------------
+    tt: str = (
+        "衤龸攵\n"
+        "i   o  pe\n"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="T", symbol="5", text=tt)
+    # -----------------
     h.draw(FontManager(size=36, a_size=24), back_car="U", symbol="7", text="不")
-    h.draw(FontManager(size=36, a_size=24), back_car="V", symbol="粘贴", text="土士见山斤米业车\n龶耂壴乂𠂭ス龴\n癶𠂆戶讠")
-    h.draw(FontManager(size=36, a_size=24), back_car="W", symbol="2", text="人水合力食申\n僉隹禺")
-    h.draw(FontManager(size=36, a_size=24), back_car="X", symbol="剪切", swipe_down="", text="羊鸟乌䒑丷リ\n𦍌𢆉钅")
-
-    h.draw(FontManager(size=20), back_car="Y", symbol="6", text="竹气西双耳\n𠂉酉刂")
-    h.draw(FontManager(size=20), back_car="Z", symbol="\"", swipe_down="", text="[反查]")
+    tv: str = (
+        "龶壴戶讠\n"
+        "ke su hu e\n\n"
+        "耂癶ス龴\n"
+        "o\n"
+        "𠂆乂𠂭\n"
+        "o   i\n"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="V", symbol="粘贴", text=tv)
+    # -----------------
+    tw: str = (
+        "僉隹\n"
+        "qi co  o\n\n"
+        "禺\n"
+        " e"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="W", symbol="2", text=tw)
+    # -----------------
+    tx: str = (
+        "リ钅\n"
+        "ci  jo"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="X", symbol="剪切", swipe_down="", text=tx)
+    # -----------------
+    ty: str = (
+        "𠂉酉刂\n"
+        " o su  u di"
+    )
+    h.draw(FontManager(size=36, a_size=24), back_car="Y", symbol="6", text=ty)
+    # -----------------
+    h.draw(FontManager(size=36, a_size=24), back_car="Z", symbol="\"", swipe_down="", text="[反查]")
 
 
 if __name__ == "__main__":
