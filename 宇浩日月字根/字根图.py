@@ -12,20 +12,30 @@ ps = platform.system().lower()
 # 显示屏16:9，照片像素应为：1685*948pix，上下空白像素应为116
 
 mnemonic1: str = (
-    "B 虎爪示瓜卜，亦未末\n"
-    "    hu sa ka ga bu    i  o  mo\n"
-    "C 乙世又女马禾生\n"
-    "    i  ka u  ne ma he ke\n"
+    "Q 几虫卯\n"
+    "    ji ho mi\n"
+    "W 人水合力食申\n"
+    "      o  ko he li ka ke\n"
+    "R 王毛文立石，单耳身黑\n"
+    "    o  mi  i li ka       je   ke ho\n"
+    "T 十巾火由尚\n"
+    "   ka jo ho  u  ke\n"
+    "Y 竹气西双耳\n"
+    "    su qi xi   fu"
+)
+mnemonic2: str = (
+    "S 山倒尸至二隶户，竖点片木尤用舌\n"
+    "      ji  ka si  o  li hu      o    pe me  o  i  ke\n"
     "D 己言母金口，已长皮\n"
     "    ji e  me jo ke     i re pi\n"
     "F 一面手乃，而牙电甲鱼\n"
     "    i  me ke ne     o  a  di ja e\n"
     "G 目皿厂夭，广鹿麻儿九牛革\n"
-    "    me mo a  i      go lu ma o  ju nu ge"
-)
-mnemonic2: str = (
+    "    me mo  a  i     go lu ma o  ju nu ge\n"
     "H 艮走亥其田，自习贝页止辰\n"
-    "    ge ze he qi ti     zi xi bo e si re\n"
+    "    ge ze he qi ti     zi xi bo e si re"
+)
+mnemonic3: str = (
     "J 日早瓦工寸刀丰，夕川鬼门心巴骨，舟上臣矢巳\n"
     "   i  zi a  gi ci di fe     xi ri go me xo ba gu     se ke re ka si\n"
     "K 八千里，弓下白臼入框，三丁古，戈戊且之辛甫\n"
@@ -33,32 +43,21 @@ mnemonic2: str = (
     "L 匕非子穴高曲向小，幺方予亡了干正欠\n"
     "   bi fo zi xe gi qe xo xi     i  fe  e  o  le ga se qi\n"
     "M 草头不耳七也丑\n"
-    "       ci  bu  o  qi e  re"
-)
-
-mnemonic3: str = (
-    "N 点月缶壬足\n"
-    "     di e  fe o  zu\n"
-    "P 大夫春雨犬\n"
-    "    da fu di e  qi\n"
-    "Q 几虫卯\n"
-    "    ji ho mi\n"
-    "R 王毛文立石，单耳身黑\n"
-    "    o  mi  i li ka       je   ke ho\n"
-    "S 山倒尸至二隶户，竖点片木尤用舌\n"
-    "      ji  ka si  o  li hu      o    pe me  o  i  ke"
+    "       ci  bu  o  qi e  re\n"
+    "P 大夫𡗗雨犬\n"
+    "    da fu di e  qi"
 )
 mnemonic4: str = (
-    "T 十巾火衣由尚\n"
-    "   ka jo ho  o  u  ke\n"
-    "V 土士见山斤米业车\n"
-    "    du ke je ka jo mi  e re\n"
-    "W 人水合力食申\n"
-    "      o  ko he li ka ke\n"
     "X 横点羊鸟乌\n"
     "      ci   o  ni u\n"
-    "Y 竹气西双耳\n"
-    "    su qi xi   fu"
+    "C 乙世又女马禾生\n"
+    "    i  ka u  ne ma he ke\n"
+    "V 土士见山斤米业车\n"
+    "    du ke je ka jo mi  e re\n"
+    "B 虎爪示瓜卜，亦未末\n"
+    "    hu sa ka ga bu    i  o  mo\n"
+    "N 点月缶壬足\n"
+    "     di e  fe o  zu"
 )
 
 m_font = "字根图字体/Dengb.ttf"
@@ -74,6 +73,8 @@ class Handle:
     def get_font_for_char(self, char):
         if char in "abcdefghijklmnopqrstuvwxyz":
             return ImageFont.truetype(font=a_font, size=a_size)
+        elif char in {"𡗗"}:
+            return ImageFont.truetype(font="字根图字体/PlangothicP1-Regular.ttf", size=(a_size + 10))
         else:
             return ImageFont.truetype(font=m_font, size=m_size)  # 等线，粗
 
@@ -155,9 +156,9 @@ class Handle:
 
         # 加口诀
         self.drawmne(n_x=50, n_y=n_y, draw=draw, mnemonic=mnemonic1)
-        self.drawmne(n_x=415, n_y=n_y, draw=draw, mnemonic=mnemonic2)
-        self.drawmne(n_x=1000, n_y=n_y, draw=draw, mnemonic=mnemonic3)
-        self.drawmne(n_x=1430, n_y=n_y, draw=draw, mnemonic=mnemonic4)
+        self.drawmne(n_x=370, n_y=n_y, draw=draw, mnemonic=mnemonic2)
+        self.drawmne(n_x=810, n_y=n_y, draw=draw, mnemonic=mnemonic3)
+        self.drawmne(n_x=1400, n_y=n_y, draw=draw, mnemonic=mnemonic4)
 
         # 保存
         palette_img = Image.new("P", (1, 1))  # 调色板

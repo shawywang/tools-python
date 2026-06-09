@@ -24,24 +24,25 @@ char_font1: Set[str] = {
     "㇉", "飛", "來", "氵", "匚", "丂", "㐄", "丿", "龵", "見", "貝",
     "頁", "丆", "疒", "⺧", "豕", "扌", "丬", "⺌", "龷", "卅", "卌",
     "𠂇", "冖", "⺈", "乜", "コ", "丶", "亍", "厶", "钅", "𠂉", "酉",
-    "刂", "罒", "丩", ""
+    "刂", "罒", "丩",
 }
 # 文津2
 char_font2: Set[str] = {
     "𠄎", "𡿨", "𫶧", "𧰨", "𬺰", "𦣞", "𣥂", "𭕄", "𠀎", "𫠠", "𠂤",
-    "𠂭", "𠂆", "𦍌", "𢆉", ""
+    "𠂭", "𠂆", "𦍌", "𢆉",
 }
-char_font3: Set[str] = {"𰁜", "𳑳", "𰀁", "𱼀", ""}  # 文津3
-char_font4: Set[str] = {"𠂎", ""}  # 遍黑1
-char_font5: Set[str] = {"ㅑ", "𘮌", "𱍸", ""}  # 遍黑2
+char_font3: Set[str] = {"𰁜", "𳑳", "𰀁", "𱼀", }  # 文津3
+char_font4: Set[str] = {"𠂎", "𧘇", }  # 遍黑1
+char_font5: Set[str] = {"ㅑ", "𘮌", "𱍸", "𘯝", }  # 遍黑2
 # 宇浩
 char_font6: Set[str] = {
     "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "", "", "", "", "", ""
+    "", "", "", "", "", "", "", "", "", "", "",
+    "",
 }
-char_font7: Set[str] = {"𰀪"}  # 98V
+char_font7: Set[str] = {"𰀪", }  # 98V
 char_font8: Set[str] = {""}  # 98U
 
 back_car_orange: str = "QWERTASDFGZXCVB"
@@ -228,7 +229,7 @@ def main():
     h.draw(FontManager(size=36, a_size=24), back_car="A", text="了")
     tb: str = (
         "ㅑ𳑳虍\n"
-        " o  o  hu\n"
+        " o     hu\n"
         "鹵灬馬\n"
         "lu bi  ma\n"
         "魚礻\n"
@@ -239,7 +240,7 @@ def main():
     tc: str = (
         "亅𠃌𠄎㇇\n"
         "乚㇉𡿨\n"
-        "i\n"
+        "   i\n"
         "飛來氵\n"
         "fo  le o ko"
     )
@@ -256,7 +257,7 @@ def main():
     h.draw(FontManager(size=36, a_size=24), back_car="E", text="的")
     tf: str = (
         "𘮌丂匚\n"
-        "ki      fe\n"
+        "ki     fe\n"
         "𰀁㐄丿\n"
         " o         pe\n"
         "龵\n"
@@ -289,7 +290,7 @@ def main():
         "曰𦣞\n"
         " e   i\n\n"
         "忄丄咼冎\n"
-        "fu xo ga\n\n"
+        "xo ke ga\n\n"
         "巛巜𬺰\n"
         "ri     o\n"
         "\n"
@@ -312,10 +313,10 @@ def main():
         " o\n\n"
         "亠𣥂⺌𭕄\n"
         "lo te xi\n\n"
-        "辶髟兀糹長镸\n"
-        "ro bi u si re\n\n"
-        "饣丨\n"
-        "gi ka xo gi"
+        "辶髟糹糸長镸\n"
+        "ro bi si    re\n\n"
+        "兀饣丨\n"
+        " u gi ka xo gi"
     )
     h.draw(FontManager(size=28, a_size=20), back_car="L", text=tl)
     # -----------------
@@ -369,8 +370,10 @@ def main():
     h.draw(FontManager(size=36, a_size=24), back_car="S", text=ts)
     # -----------------
     tt: str = (
-        "衤龸攵\n"
-        "i   o  pe\n"
+        "龸𧘇𘯝\n"
+        "o\n\n"
+        "衤攵夂\n"
+        "i   pe"
     )
     h.draw(FontManager(size=36, a_size=24), back_car="T", text=tt)
     # -----------------
