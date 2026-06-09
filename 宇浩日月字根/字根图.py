@@ -45,7 +45,7 @@ mnemonic3: str = (
     "M 草头不耳七也丑\n"
     "       ci  bu  o  qi e  re\n"
     "P 大夫𡗗雨犬\n"
-    "    da fu di e  qi"
+    "   da fu di e  qi"
 )
 mnemonic4: str = (
     "X 横点羊鸟乌\n"
