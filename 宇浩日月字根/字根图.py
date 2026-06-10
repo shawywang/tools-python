@@ -25,7 +25,7 @@ mnemonic1: str = (
 )
 mnemonic2: str = (
     "S 山倒尸至二隶户，竖点片木尤用舌\n"
-    "      ji  ka si  o  li hu      o    pe me  o  i  ke\n"
+    "      ji  ka si  o  li hu      o    pe me  u  i  ke\n"
     "D 己言母金口，已长皮\n"
     "    ji e  me jo ke     i re pi\n"
     "F 一面手乃，而牙电甲鱼\n"
@@ -89,7 +89,7 @@ class Handle:
         for i, c in enumerate(mnemonic):
             if c == '\n':
                 if last_c_is_alpha:
-                    cur_y += (alpha_height // 2)
+                    cur_y += (alpha_height // 1.5)
                 elif not last_c_is_alpha:
                     cur_y += (c_height + c_height // 3)
                 cur_x = n_x
@@ -100,7 +100,14 @@ class Handle:
                 draw.text(xy=(cur_x, cur_y - 8), text=c, fill=(95, 95, 95), font=font)
             else:
                 last_c_is_alpha = False
-                draw.text(xy=(cur_x, cur_y), text=c, fill="black", font=font)
+                if c in {"几", "合", "力", "立", "气", "西", "隶", "户", "木", "己", "已", "皮", "一", "电",
+                         "鹿", "革", "艮", "其", "田", "自", "习", "丰", "夕", "门", "巴", "骨", "巳", "八",
+                         "千", "里", "三", "丁", "古", "戈", "甫", "匕", "子", "小", "了", "干", "欠", "不",
+                         "七", "大", "夫", "鸟", "乙", "马", "禾", "米", "虎", "卜", "亦", "末", "点", "足"
+                         }:
+                    draw.text(xy=(cur_x, cur_y), text=c, fill=(26, 170, 47), font=font)
+                else:
+                    draw.text(xy=(cur_x, cur_y), text=c, fill="black", font=font)
             bbox = font.getbbox(c)
             c_width = bbox[2] - bbox[0]
             cur_x += c_width
