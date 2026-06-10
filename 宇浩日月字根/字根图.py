@@ -21,7 +21,9 @@ mnemonic1: str = (
     "T 十巾火由尚\n"
     "   ka jo ho  u  ke\n"
     "Y 竹气西双耳\n"
-    "    su qi xi   fu"
+    "    su qi xi   fu\n"
+    "P 大夫𡗗雨犬\n"
+    "   da fu di e  qi"
 )
 mnemonic2: str = (
     "S 山倒尸至二隶户，竖点片木尤用舌\n"
@@ -31,21 +33,17 @@ mnemonic2: str = (
     "F 一面手乃，而牙电甲鱼\n"
     "    i  me ke ne     o  a  di ja e\n"
     "G 目皿厂夭，广鹿麻儿九牛革\n"
-    "    me mo  a  i     go lu ma o  ju nu ge\n"
-    "H 艮走亥其田，自习贝页止辰\n"
-    "    ge ze he qi ti     zi xi bo e si re"
+    "    me mo  a  i     go lu ma o  ju nu ge"
 )
 mnemonic3: str = (
+    "H 艮走亥其田，自习贝页止辰\n"
+    "    ge ze he qi ti     zi xi bo e si re\n"
     "J 日早瓦工寸刀丰，夕川鬼门心巴骨，舟上臣矢巳\n"
     "   i  zi a  gi ci di fe     xi ri go me xo ba gu     se ke re ka si\n"
     "K 八千里，弓下白臼入框，三丁古，戈戊且之辛甫\n"
     "    ba qi li     gi xa be ju e  o     sa di gu      ge u qe si xo fu\n"
     "L 匕非子穴高曲向小，幺方予亡了干正欠\n"
-    "   bi fo zi xe gi qe xo xi     i  fe  e  o  le ga se qi\n"
-    "M 草头不耳七也丑\n"
-    "       ci  bu  o  qi e  re\n"
-    "P 大夫𡗗雨犬\n"
-    "   da fu di e  qi"
+    "   bi fo zi xe gi qe xo xi     i  fe  e  o  le ga se qi"
 )
 mnemonic4: str = (
     "X 横点羊鸟乌\n"
@@ -57,7 +55,9 @@ mnemonic4: str = (
     "B 虎爪示瓜卜，亦未末\n"
     "    hu sa ka ga bu    i  o  mo\n"
     "N 点月缶壬足\n"
-    "     di e  fe o  zu"
+    "     di e  fe o  zu\n"
+    "M 草头不耳七也丑\n"
+    "       ci  bu  o  qi e  re"
 )
 
 m_font = "字根图字体/Dengb.ttf"
