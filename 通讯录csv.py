@@ -22,6 +22,7 @@ from googleapiclient.discovery import build
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # 我的项目：https://console.cloud.google.com/welcome?project=shawywang
 # 秘钥下载：https://console.cloud.google.com/iam-admin/serviceaccounts/details/113395744585198746498/keys?project=shawywang
+# 日历权限控制：https://myaccount.google.com/connections?gar=WzYwXQ&continue=https%3A%2F%2Fmyaccount.google.com%2Fdata-and-privacy%3Fgar%3DWzYwXQ%26hl%3Dzh_CN%26utm_source%3DOGB%26utm_medium%3Dact&hl=zh_CN&utm_source=OGB&utm_medium=act
 # 指导：https://ai.google.dev/palm_docs/oauth_quickstart?hl=zh-cn
 # 启用日历api：https://developers.google.com/workspace/calendar/api/quickstart/python?hl=zh_CN
 # 日历未被展示（右边警告）：https://console.cloud.google.com/auth/branding?hl=zh-cn&project=shawywang
@@ -245,7 +246,7 @@ class GoogleCalendar:
                 print("✅ 找到 谷歌桌面客户端1凭据.json 文件，开始认证...")
                 flow = InstalledAppFlow.from_client_secrets_file(
                     oauth_token,
-                    ['https://www.googleapis.com/auth/calendar']
+                    scopes=['https://www.googleapis.com/auth/calendar']
                 )
                 print("🌐 正在打开浏览器进行Google账号认证...")
                 creds = flow.run_local_server(port=0)
@@ -256,7 +257,7 @@ class GoogleCalendar:
                 token.write(creds.to_json())
             print("✅ 谷歌短期凭据.json 文件已生成")
         # 步骤4: 创建API服务
-        service = build('calendar', 'v3', credentials=creds)
+        service = build(serviceName='calendar', version='v3', credentials=creds)
         print("🎉 API服务创建成功！")
         return service
 
@@ -378,6 +379,9 @@ class CulDate:
         try:
             service = self.cal.get_calendar_service()
             # service = self.cal.upload_to_gcs()
+            events = service.events().list().execute()
+            calendar_list = service.calendarList().list().execute()
+            print(f"calendar_list = {calendar_list}\nevents = {events}")
         except:
             sys.exit(-1)
         print("\n\n=========清除谷歌日历所有事件========\n\n")
