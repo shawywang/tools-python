@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple, Set
 
 import lunardate
 from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -20,6 +21,7 @@ from googleapiclient.discovery import build
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install --upgrade pip
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # 我的项目：https://console.cloud.google.com/welcome?project=shawywang
+# 秘钥下载：https://console.cloud.google.com/iam-admin/serviceaccounts/details/113395744585198746498/keys?project=shawywang
 # 指导：https://ai.google.dev/palm_docs/oauth_quickstart?hl=zh-cn
 # 启用日历api：https://developers.google.com/workspace/calendar/api/quickstart/python?hl=zh_CN
 # 日历未被展示（右边警告）：https://console.cloud.google.com/auth/branding?hl=zh-cn&project=shawywang
@@ -29,6 +31,7 @@ from googleapiclient.discovery import build
 # https://contacts.google.com/?hl=zh-CN&tab=CC
 # 注意，下面设置了代理端口，要和当前系统的保持一致，有时候是7897
 ps = platform.system().lower()
+API_KEY = "AIzaSyCpLLPLmdpKULbwnl8gqcAjNcHXNLIVVaY"
 oauth_token = r'C:\Users\wangxiao\Nutstore\1\我的坚果云\谷歌桌面客户端1凭据.json'
 oauth_token2 = r'C:\Users\wangxiao\Nutstore\1\我的坚果云\谷歌短期凭据.json'
 if ps == "darwin":  # macOS
@@ -39,10 +42,10 @@ from dotenv import load_dotenv
 load_dotenv()  # 从.env文件加载配置
 # 强制设置外网代理环境变量（Clash默认端口）
 PROXY_URL = 'http://127.0.0.1:7897'  # 以clash为准
-# os.environ['HTTP_PROXY'] = PROXY_URL
-# os.environ['HTTPS_PROXY'] = PROXY_URL
-# os.environ['http_proxy'] = PROXY_URL
-# os.environ['https_proxy'] = PROXY_URL
+os.environ['HTTP_PROXY'] = PROXY_URL
+os.environ['HTTPS_PROXY'] = PROXY_URL
+os.environ['http_proxy'] = PROXY_URL
+os.environ['https_proxy'] = PROXY_URL
 
 file_path = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\我的文档\个人\联系人.txt"
 if ps == "darwin":  # macOS
@@ -200,6 +203,19 @@ class Person:
 class GoogleCalendar:
     def __init__(self):
         pass
+
+    def upload_to_gcs(self):
+        creds = service_account.Credentials.from_service_account_file(
+            filename="/Users/wangxiao/Nutstore Files/我的坚果云/谷歌凭据.json",
+            scopes=["https://www.googleapis.com/auth/calendar"]
+        )
+        service = build(
+            serviceName="calendar",
+            version="v3",
+            credentials=creds
+        )
+        calendar_list = service.calendarList().list().execute()
+        print(calendar_list)
 
     def get_calendar_service(self):
         creds = None
@@ -361,6 +377,7 @@ class CulDate:
         print("\n\n=========谷歌日历========\n\n")
         try:
             service = self.cal.get_calendar_service()
+            # service = self.cal.upload_to_gcs()
         except:
             sys.exit(-1)
         print("\n\n=========清除谷歌日历所有事件========\n\n")
