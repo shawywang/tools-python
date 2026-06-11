@@ -15,6 +15,7 @@ from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from ics import Calendar, Event
 
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
@@ -49,11 +50,13 @@ os.environ['http_proxy'] = PROXY_URL
 os.environ['https_proxy'] = PROXY_URL
 
 file_path = r"C:\Users\wangxiao\Nutstore\1\我的坚果云\我的文档\个人\联系人.txt"
+out_csv_file = r"C:\Users\wangxiao\Downloads\contact.csv"
+schedule_ics = ""
 if ps == "darwin":  # macOS
     file_path = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/联系人.txt"
-out_csv_file = r"C:\Users\wangxiao\Downloads\contact.csv"
-if ps == "darwin":  # macOS
     out_csv_file = "/Users/wangxiao/Downloads/contact.csv"
+    schedule_ics = "/Users/wangxiao/Downloads/schedule.ics"
+
 google_csv_title: List[str] = [
     "Name Prefix", "First Name", "Middle Name", "Last Name", "Name Suffix",
     "Phonetic First Name", "Phonetic Middle Name", "Phonetic Last Name",
@@ -218,6 +221,57 @@ class GoogleCalendar:
         calendar_list = service.calendarList().list().execute()
         print(calendar_list)
 
+    def output_ics(self, mention_info: List[List[str]]):
+        try:
+            calendar = Calendar()
+            for m in mention_info:
+                event = Event()
+                summary: str = f"{m[4]}{m[5]}"
+                if len(m) != 8:
+                    summary += f"（满{int(m[8]) + 1}年）"
+                event.name = summary
+                event.begin = date(year=int(m[1]), month=int(m[2]), day=int(m[3]))
+                event.make_all_day()
+                event.description = f"{m[6]}（{m[7]}）"
+                print(f"【summary】{event.name}；【begin】{event.begin}；【des】{event.description}")
+                calendar.events.add(event)
+            with open(schedule_ics, "w", encoding="utf-8") as f:
+                f.writelines(calendar.serialize_iter())
+        except Exception as e:
+            print(f"错误：{e}")
+            sys.exit(-1)
+        print(f"\n已生成{schedule_ics}，先清空日历再导入到谷歌日历中去")
+
+    def handle_events(self, mention_info: List[List[str]]):
+        try:
+            service = self.cal.get_calendar_service()
+            # service = self.cal.upload_to_gcs()
+            events = service.events().list().execute()
+            calendar_list = service.calendarList().list().execute()
+            print(f"calendar_list = {calendar_list}\nevents = {events}")
+        except:
+            sys.exit(-1)
+        print("\n\n=========清除谷歌日历所有事件========\n\n")
+        try:
+            self.cal.clear_all_events(service)
+        except:
+            sys.exit(-1)
+        print("\n\n=========清除完成，开始添加========\n\n")
+        try:
+            for m in mention_info:
+                summary: str = f"{m[4]}{m[5]}"
+                if len(m) != 8:
+                    summary += f"（满{int(m[8]) + 1}年）"
+                self.cal.create_all_day_event(
+                    service,
+                    summary,
+                    date(int(m[1]), int(m[2]), int(m[3])),
+                    f"{m[6]}（{m[7]}）"
+                )
+        except:
+            sys.exit(-1)
+        print("🎉 ALL DONE !!!")
+
     def get_calendar_service(self):
         creds = None
         # 步骤1: 检查是否已有谷歌短期凭据.json (之前认证过1次)
@@ -225,7 +279,7 @@ class GoogleCalendar:
             print("✅ 找到现有的 谷歌短期凭据.json 文件")
             creds = Credentials.from_authorized_user_file(
                 oauth_token2,
-                ['https://www.googleapis.com/auth/calendar']
+                scopes=['https://www.googleapis.com/auth/calendar']
             )
             print("已加载现有凭据")
         else:
@@ -233,17 +287,13 @@ class GoogleCalendar:
         # 步骤2: 检查凭据是否有效
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                print("🔄 令牌已过期，正在刷新...")
                 creds.refresh(Request())
                 print("✅ 令牌刷新成功")
             else:
                 print("🚀 开始OAuth 2.0认证流程...")
-                # 检查谷歌桌面客户端1凭据.json是否存在
                 if not os.path.exists(oauth_token):
-                    print("❌ 错误: 未找到 谷歌桌面客户端1凭据.json 文件")
-                    print("请从Google Cloud Console下载OAuth 2.0凭据文件")
+                    print("❌ 错误: 未找到，请从Google Cloud Console下载OAuth 2.0凭据文件")
                     sys.exit(-1)
-                print("✅ 找到 谷歌桌面客户端1凭据.json 文件，开始认证...")
                 flow = InstalledAppFlow.from_client_secrets_file(
                     oauth_token,
                     scopes=['https://www.googleapis.com/auth/calendar']
@@ -251,12 +301,9 @@ class GoogleCalendar:
                 print("🌐 正在打开浏览器进行Google账号认证...")
                 creds = flow.run_local_server(port=0)
                 print("✅ 认证成功！")
-            # 步骤3: 保存令牌供下次使用
-            print("💾 保存认证令牌到 谷歌短期凭据.json...")
-            with open(oauth_token2, 'w') as token:
+            with open(oauth_token2, 'w') as token:  # 步骤3: 保存令牌供下次使用
                 token.write(creds.to_json())
             print("✅ 谷歌短期凭据.json 文件已生成")
-        # 步骤4: 创建API服务
         service = build(serviceName='calendar', version='v3', credentials=creds)
         print("🎉 API服务创建成功！")
         return service
@@ -363,7 +410,6 @@ class CulDate:
                     y, m, d = self.date_diff(per_memo, date.today())
                     ment_info.extend([f"{y}", f"{m}", f"{d}"])
                 mention_info.append(ment_info)
-
         mention_info.sort(key=lambda x: int(x[0]))
 
         for m in mention_info:
@@ -376,34 +422,8 @@ class CulDate:
                 print(f"，距今{m[8]}年{m[9]}个月{m[10]}天")
 
         print("\n\n=========谷歌日历========\n\n")
-        try:
-            service = self.cal.get_calendar_service()
-            # service = self.cal.upload_to_gcs()
-            events = service.events().list().execute()
-            calendar_list = service.calendarList().list().execute()
-            print(f"calendar_list = {calendar_list}\nevents = {events}")
-        except:
-            sys.exit(-1)
-        print("\n\n=========清除谷歌日历所有事件========\n\n")
-        try:
-            self.cal.clear_all_events(service)
-        except:
-            sys.exit(-1)
-        print("\n\n=========清除完成，开始添加========\n\n")
-        try:
-            for m in mention_info:
-                summary: str = f"{m[4]}{m[5]}"
-                if len(m) != 8:
-                    summary += f"（满{int(m[8]) + 1}年）"
-                self.cal.create_all_day_event(
-                    service,
-                    summary,
-                    date(int(m[1]), int(m[2]), int(m[3])),
-                    f"{m[6]}（{m[7]}）"
-                )
-        except:
-            sys.exit(-1)
-        print("🎉 ALL DONE !!!")
+        # self.cal.handle_events(mention_info)
+        self.cal.output_ics(mention_info)
 
     def parse_lunar_date(self, date_str: str) -> lunardate.LunarDate:  # 解析农历日期字符串，支持格式："正月初五"、"1990年四月廿三"、"1999年腊月初三"、"冬月十三"
         year: int = 0
@@ -595,7 +615,7 @@ class Handle:
             writer = csv.writer(csv_file)
             writer.writerow(google_csv_title)  # 写入表头
             writer.writerows(csv_data)  # 写入多行数据，会自动覆写
-        print(f"完成！{out_csv_file}")
+        print(f"完成！{out_csv_file}，先清空联系人再导入到谷歌联系人中去")
 
 
 def main():
@@ -607,10 +627,8 @@ def main():
     print("\n========以下写入.csv文件========\n")
     c.write_csv()
     print("\n========以下是联系人日期提醒========\n")
-
     d = CulDate(calendar=g)
     d.cul_date(pers)
-    print("")
 
 
 if __name__ == '__main__':
