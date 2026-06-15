@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Set
 
 import lunardate
+from bazi_calculator import BaziCalculator
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -386,6 +387,35 @@ class GoogleCalendar:
 class CulDate:
     def __init__(self, calendar: GoogleCalendar):
         self.cal = calendar
+
+    def get_bazi(self):
+
+        calc = BaziCalculator(
+            year=1961, month=9, day=27, hour=0,
+            gender="男",
+            birthplace_lon=114.1, birthplace_lat=22.5  # 香港
+        )
+        calc.calculate_pillars()
+        calc.determine_pattern()
+        calc.calculate_shen_sha()
+        calc.select_yong_shen()
+        calc.calculate_da_yun()
+
+        # 四柱
+        print(calc.pillars)  # {'年柱': ('辛','丑'), '月柱': ('丁','酉'), ...}
+
+        # 格局
+        print(calc.pattern)  # 羊刃格
+        print(calc.pattern_success)  # 成格
+        print(''.join(calc.yong_shen))  # 木火
+
+        # 流年（1961-1970）
+        for item in calc.analyze_liu_nian(1961, 10):
+            print(item['年份'], item['流年'], item['十神'], item['用神状态'], item['断语'][:15])
+
+        # 综合命书
+        print(calc.generate_ming_shu())
+        print(calc.generate_ming_shu(lang="en"))
 
     def cul_date(self, pers: List[Person]):
         mention_info: List[List[str]] = []
