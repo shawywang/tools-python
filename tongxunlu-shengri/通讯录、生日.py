@@ -1,5 +1,6 @@
 import calendar
 import csv
+import json
 import os
 import os.path
 import platform
@@ -10,7 +11,6 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Set
 
 import lunardate
-from bazi_calculator import BaziCalculator
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -57,6 +57,32 @@ if ps == "darwin":  # macOS
     file_path = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/联系人.txt"
     out_csv_file = "/Users/wangxiao/Downloads/contact.csv"
     schedule_ics = "/Users/wangxiao/Downloads/schedule.ics"
+
+# 生辰.json 路径
+SHENGCHEN_JSON = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/生辰.json"
+_SHENGCHEN_DATA = None
+
+
+def load_shengchen() -> dict:
+    """加载生辰.json，返回 {姓名: {key: value}} 格式"""
+    global _SHENGCHEN_DATA
+    if _SHENGCHEN_DATA is not None:
+        return _SHENGCHEN_DATA
+    if not os.path.exists(SHENGCHEN_JSON):
+        print(f"⚠️ 未找到生辰.json: {SHENGCHEN_JSON}")
+        _SHENGCHEN_DATA = {}
+        return _SHENGCHEN_DATA
+    with open(SHENGCHEN_JSON, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+    result = {}
+    for name, entries in raw.items():
+        info = {}
+        for entry in entries:
+            info.update(entry)
+        result[name] = info
+    _SHENGCHEN_DATA = result
+    return result
+
 
 google_csv_title: List[str] = [
     "Name Prefix", "First Name", "Middle Name", "Last Name", "Name Suffix",
@@ -388,35 +414,6 @@ class CulDate:
     def __init__(self, calendar: GoogleCalendar):
         self.cal = calendar
 
-    def get_bazi(self):
-
-        calc = BaziCalculator(
-            year=1961, month=9, day=27, hour=0,
-            gender="男",
-            birthplace_lon=114.1, birthplace_lat=22.5  # 香港
-        )
-        calc.calculate_pillars()
-        calc.determine_pattern()
-        calc.calculate_shen_sha()
-        calc.select_yong_shen()
-        calc.calculate_da_yun()
-
-        # 四柱
-        print(calc.pillars)  # {'年柱': ('辛','丑'), '月柱': ('丁','酉'), ...}
-
-        # 格局
-        print(calc.pattern)  # 羊刃格
-        print(calc.pattern_success)  # 成格
-        print(''.join(calc.yong_shen))  # 木火
-
-        # 流年（1961-1970）
-        for item in calc.analyze_liu_nian(1961, 10):
-            print(item['年份'], item['流年'], item['十神'], item['用神状态'], item['断语'][:15])
-
-        # 综合命书
-        print(calc.generate_ming_shu())
-        print(calc.generate_ming_shu(lang="en"))
-
     def cul_date(self, pers: List[Person]):
         mention_info: List[List[str]] = []
         # ["还有x天", "下次生日年份", "下次生日月份", "下次生日天", "姓名", "生日or纪念日", "原生日字符串", "生日当年当天", "生日or纪念日距今x年x月x日"]
@@ -548,6 +545,21 @@ class Handle:
             person.birth = withdraw(items, "生日：")
             person.memorial = withdraw(items, "纪念日：")
             person.notes = withdraw(items, "备注：")
+
+            # 从生辰.json 追加信息到备注
+            shengchen = load_shengchen()
+            if person.name in shengchen:
+                parts = []
+                for k, v in shengchen[person.name].items():
+                    if v.strip():
+                        parts.append(f"{k}：{v.strip()}")
+                if parts:
+                    extra = "。".join(parts)
+                    if person.notes:
+                        person.notes += "。" + extra
+                    else:
+                        person.notes = extra
+
             persons.append(person)
 
         return persons
