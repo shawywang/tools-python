@@ -6,10 +6,11 @@
 无需公历→农历转换，也无需 lunarcalendar 库
 """
 
+import csv
+import os
 from datetime import date
 from typing import Tuple, Dict, Optional
-import os
-import csv
+
 from lunardate import LunarDate
 
 LOOKUP = os.path.join(os.path.dirname(__file__), 'day_gan_zhi_lookup_final.csv')
@@ -19,10 +20,50 @@ TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"
 DI_ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 
 # 五虎遁：甲己年→寅月天干=丙(2)，乙庚年→寅月天干=戊(4) ...
+# 甲己之年丙作首——逢年干是甲或己的年份，正月的月干从丙上起
+# 乙庚之岁戊为头——逢年干是乙或庚的年份，正月的月干从戊上起
+# 丙辛必定寻庚起——逢年干是丙或辛的年份，正月的月干从庚上起
+# 丁壬壬位顺行流——逢年干是丁或壬的年份，正月的月干从壬上起
+# 若问戊癸何方发，甲寅之上好追求——逢年干是戊或癸的年份，正月的月干从甲上起
 WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 
 # 五鼠遁：甲己日→子时天干=甲(0)，乙庚日→子时天干=丙(2) ...
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
+
+# ========== 二十四节气——"节"（月令分界点）日期表 ==========
+# 每个元组代表该节气起始的(月, 日)
+# 顺序固定（对应地支索引 0~11）：
+#   小寒→丑(0), 立春→寅(1), 惊蛰→卯(2), 清明→辰(3),
+#   立夏→巳(4), 芒种→午(5), 小暑→未(6), 立秋→申(7),
+#   白露→酉(8), 寒露→戌(9), 立冬→亥(10), 大雪→子(11)
+# 格式：JIE_DATES_TABLE = {
+#     (起始年份, 结束年份): [ (月, 日), (月, 日), ... ],
+#     ...
+# }
+JIE_DATES_TABLE = {
+    (2020, 2035): [
+        (1, 6),   # 小寒 → 丑月
+        (2, 4),   # 立春 → 寅月
+        (3, 5),   # 惊蛰 → 卯月
+        (4, 5),   # 清明 → 辰月
+        (5, 6),   # 立夏 → 巳月
+        (6, 5),   # 芒种 → 午月
+        (7, 7),   # 小暑 → 未月
+        (8, 7),   # 立秋 → 申月
+        (9, 7),   # 白露 → 酉月
+        (10, 8),  # 寒露 → 戌月
+        (11, 7),  # 立冬 → 亥月
+        (12, 7),  # 大雪 → 子月
+    ],
+}
+
+
+def _get_jie_dates(year: int) -> list:
+    """根据年份查找对应的节气日期表，兜底用 2020~2035 的数值"""
+    for (y_start, y_end), dates in JIE_DATES_TABLE.items():
+        if y_start <= year <= y_end:
+            return dates
+    return JIE_DATES_TABLE[(2020, 2035)]
 
 
 def get_year_gan_zhi(lunar_date: LunarDate) -> Tuple[str, str]:
@@ -32,38 +73,21 @@ def get_year_gan_zhi(lunar_date: LunarDate) -> Tuple[str, str]:
     return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
 
 
-def _get_month_zhi_approx(month: int, day: int) -> str:
-    """按月+日近似判断月支（按节气）"""
-    if (month == 1 and day >= 6) or (month == 2 and day < 4):
-        return "丑"
-    elif (month == 2 and day >= 4) or (month == 3 and day < 6):
-        return "寅"
-    elif (month == 3 and day >= 6) or (month == 4 and day < 5):
-        return "卯"
-    elif (month == 4 and day >= 5) or (month == 5 and day < 6):
-        return "辰"
-    elif (month == 5 and day >= 6) or (month == 6 and day < 6):
-        return "巳"
-    elif (month == 6 and day >= 6) or (month == 7 and day < 7):
-        return "午"
-    elif (month == 7 and day >= 7) or (month == 8 and day < 7):
-        return "未"
-    elif (month == 8 and day >= 7) or (month == 9 and day < 8):
-        return "申"
-    elif (month == 9 and day >= 8) or (month == 10 and day < 8):
-        return "酉"
-    elif (month == 10 and day >= 8) or (month == 11 and day < 7):
-        return "戌"
-    elif (month == 11 and day >= 7) or (month == 12 and day < 7):
-        return "亥"
-    elif (month == 12 and day >= 7) or (month == 1 and day < 6):
-        return "子"
-    return "丑"
+def _get_month_zhi_approx(year: int, month: int, day: int) -> str:
+    """按月+日判断月支（按节气），使用年份查表确定节气日期"""
+    dates = _get_jie_dates(year)
+    # 遍历 12 个月支，判断公历日期落在哪个节气区间内
+    for i in range(12):
+        cur_m, cur_d = dates[i]
+        next_m, next_d = dates[(i + 1) % 12]
+        if (month == cur_m and day >= cur_d) or (month == next_m and day < next_d):
+            return DI_ZHI[i]
+    return DI_ZHI[0]  # 兜底
 
 
 def get_month_gan_zhi(year_gan: str, solar_d: date) -> Tuple[str, str]:
     """月柱：月支（按节气近似，需公历日期）+ 月干（五虎遁）"""
-    month_zhi = _get_month_zhi_approx(solar_d.month, solar_d.day)
+    month_zhi = _get_month_zhi_approx(solar_d.year, solar_d.month, solar_d.day)
     year_gan_idx = TIAN_GAN.index(year_gan)
     base_gan_idx = WU_HU_DUN[year_gan_idx]
     offset = (DI_ZHI.index(month_zhi) - 2) % 12
@@ -186,6 +210,7 @@ if __name__ == '__main__':
     # 测试用例：用农历日期直接构造
     test_cases = [
         # (LunarDate, hour, minute)
+        (LunarDate(year=1992, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1930, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1929, month=5, day=25, isLeapMonth=False), 11, 30),
         (LunarDate(year=1950, month=4, day=27, isLeapMonth=False), 8, 30),
