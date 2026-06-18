@@ -13,7 +13,7 @@ from typing import Tuple, Dict, Optional
 
 from lunardate import LunarDate
 
-LOOKUP = os.path.join(os.path.dirname(__file__), 'day_gan_zhi_lookup_final.csv')
+LOOKUP = os.path.join(os.path.dirname(__file__), '日柱表.csv')
 
 # ========== 基础常量 ==========
 TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
@@ -31,11 +31,11 @@ WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
 
 # ========== 24节气加载 ==========
-# 数据文件 jieqi_days_200y.csv：每行24个日值 + 年份
+# 数据文件 二十四节气.csv：每行24个日值 + 年份
 # 24节气顺序：小寒,大寒,立春,雨水,惊蛰,春分,清明,谷雨,立夏,小满,芒种,夏至,
 #             小暑,大暑,立秋,处暑,白露,秋分,寒露,霜降,立冬,小雪,大雪,冬至
 # 月份固定（1~12月各2个），取偶数索引（小寒、立春、惊蛰...大雪）用于月支判定
-JIEQI_FILE = os.path.join(os.path.dirname(__file__), 'jieqi_days_200y.csv')
+JIEQI_FILE = os.path.join(os.path.dirname(__file__), '二十四节气.csv')
 _JIE_LOOKUP: Optional[dict] = None
 
 
