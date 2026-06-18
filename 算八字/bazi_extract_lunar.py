@@ -20,23 +20,15 @@ TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"
 DI_ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 
 # 五虎遁：甲己年→寅月天干=丙(2)，乙庚年→寅月天干=戊(4) ...
-# 甲己之年丙作首——逢年干是甲或己的年份，正月的月干从丙上起
-# 乙庚之岁戊为头——逢年干是乙或庚的年份，正月的月干从戊上起
-# 丙辛必定寻庚起——逢年干是丙或辛的年份，正月的月干从庚上起
-# 丁壬壬位顺行流——逢年干是丁或壬的年份，正月的月干从壬上起
-# 若问戊癸何方发，甲寅之上好追求——逢年干是戊或癸的年份，正月的月干从甲上起
 WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 
 # 五鼠遁：甲己日→子时天干=甲(0)，乙庚日→子时天干=丙(2) ...
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
 
-# ========== 24节气加载 ==========
-# 数据文件 二十四节气.csv：每行24个日值 + 年份
-# 24节气顺序：小寒,大寒,立春,雨水,惊蛰,春分,清明,谷雨,立夏,小满,芒种,夏至,
-#             小暑,大暑,立秋,处暑,白露,秋分,寒露,霜降,立冬,小雪,大雪,冬至
-# 月份固定（1~12月各2个），取偶数索引（小寒、立春、惊蛰...大雪）用于月支判定
+# ========== 24节气 & 日柱缓存（模块级，所有实例共享）==========
 JIEQI_FILE = os.path.join(os.path.dirname(__file__), '二十四节气.csv')
 _JIE_LOOKUP: Optional[dict] = None
+_DAY_LOOKUP: Optional[dict] = None
 
 
 def _load_jie_lookup() -> dict:
@@ -50,7 +42,6 @@ def _load_jie_lookup() -> dict:
             year = vals[-1]
             # 取偶数索引（0,2,4,...,22）作为12个"节"的日值
             days = [vals[i] for i in range(0, 24, 2)]
-            # 月份固定 1~12
             lookup[year] = [(m + 1, days[m]) for m in range(12)]
     return lookup
 
@@ -62,38 +53,8 @@ def _get_jie_dates(year: int) -> list:
         _JIE_LOOKUP = _load_jie_lookup()
     if year in _JIE_LOOKUP:
         return _JIE_LOOKUP[year]
-    # 兜底：取最近年份
     nearest = min(_JIE_LOOKUP.keys(), key=lambda y: abs(y - year))
     return _JIE_LOOKUP[nearest]
-
-
-def get_year_gan_zhi(lunar_date: LunarDate) -> Tuple[str, str]:
-    """年柱：直接用农历年份（用户已传正确的农历日期）"""
-    gan_idx = (lunar_date.year - 4) % 10
-    zhi_idx = (lunar_date.year - 4) % 12
-    return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
-
-
-def _get_month_zhi_approx(year: int, month: int, day: int) -> str:
-    """按月+日判断月支（按节气），使用年份查表确定节气日期"""
-    dates = _get_jie_dates(year)
-    # 遍历 12 个月支，判断公历日期落在哪个节气区间内
-    for i in range(12):
-        cur_m, cur_d = dates[i]
-        next_m, next_d = dates[(i + 1) % 12]
-        if (month == cur_m and day >= cur_d) or (month == next_m and day < next_d):
-            return DI_ZHI[i]
-    return DI_ZHI[0]  # 兜底
-
-
-def get_month_gan_zhi(year_gan: str, solar_d: date) -> Tuple[str, str]:
-    """月柱：月支（按节气近似，需公历日期）+ 月干（五虎遁）"""
-    month_zhi = _get_month_zhi_approx(solar_d.year, solar_d.month, solar_d.day)
-    year_gan_idx = TIAN_GAN.index(year_gan)
-    base_gan_idx = WU_HU_DUN[year_gan_idx]
-    offset = (DI_ZHI.index(month_zhi) - 2) % 12
-    month_gan = TIAN_GAN[(base_gan_idx + offset) % 10]
-    return month_gan, month_zhi
 
 
 def _load_day_lookup() -> Optional[dict]:
@@ -108,109 +69,145 @@ def _load_day_lookup() -> Optional[dict]:
     return lookup
 
 
-_DAY_LOOKUP: Optional[dict] = None
+# ========== 八字计算器类 ==========
+
+class BaZi:
+    """八字四柱计算器
+
+    用法:
+        bz = BaZi(LunarDate(1992, 2, 28), 4, 0)
+        print(bz.compact)       # 紧凑字符串
+        print(bz.four_pillars)  # 字典
+        print(bz.year_gan)      # 年干
+        print(bz.month_zhi)     # 月支
+    """
+
+    def __init__(self, lunar_date: LunarDate, hour: int, minute: int = 0):
+        self.lunar_date = lunar_date
+        self.hour = hour
+        self.minute = minute
+
+        # ---- 四柱计算，结果存为实例属性 ----
+        self.year_gan, self.year_zhi = self._calc_year()
+
+        # 月柱、日柱需要公历日期
+        self.solar_date = lunar_date.toSolarDate()
+
+        self.month_gan, self.month_zhi = self._calc_month()
+        self.day_gan, self.day_zhi = self._calc_day()
+        self.hour_gan, self.hour_zhi = self._calc_hour()
+
+    # ---- 年柱 ----
+
+    def _calc_year(self) -> Tuple[str, str]:
+        gan_idx = (self.lunar_date.year - 4) % 10
+        zhi_idx = (self.lunar_date.year - 4) % 12
+        return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
+
+    # ---- 月柱 ----
+
+    def _calc_month(self) -> Tuple[str, str]:
+        month_zhi = self._get_month_zhi()
+        year_gan_idx = TIAN_GAN.index(self.year_gan)
+        base_gan_idx = WU_HU_DUN[year_gan_idx]
+        offset = (DI_ZHI.index(month_zhi) - 2) % 12
+        month_gan = TIAN_GAN[(base_gan_idx + offset) % 10]
+        return month_gan, month_zhi
+
+    def _get_month_zhi(self) -> str:
+        """按月+日判断月支（按节气）"""
+        dates = _get_jie_dates(self.solar_date.year)
+        m, d = self.solar_date.month, self.solar_date.day
+        for i in range(12):
+            cur_m, cur_d = dates[i]
+            next_m, next_d = dates[(i + 1) % 12]
+            if (m == cur_m and d >= cur_d) or (m == next_m and d < next_d):
+                return DI_ZHI[i]
+        return DI_ZHI[0]
+
+    # ---- 日柱 ----
+
+    def _calc_day(self) -> Tuple[str, str]:
+        global _DAY_LOOKUP
+        if _DAY_LOOKUP is None:
+            _DAY_LOOKUP = _load_day_lookup()
+        if _DAY_LOOKUP is not None:
+            key = self.solar_date.strftime('%Y-%m-%d')
+            if key in _DAY_LOOKUP:
+                return _DAY_LOOKUP[key]
+
+        base = date(2000, 1, 1)
+        days = (self.solar_date - base).days
+        gan_idx = (4 + days) % 10
+        zhi_idx = (6 + days) % 12
+        return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
+
+    # ---- 时柱 ----
+
+    def _calc_hour(self) -> Tuple[str, str]:
+        total_min = self.hour * 60 + self.minute
+        if total_min < 60 or total_min >= 1380:
+            zhi_idx = 0  # 子 23-1
+        elif total_min < 180:
+            zhi_idx = 1  # 丑 1-3
+        elif total_min < 300:
+            zhi_idx = 2  # 寅 3-5
+        elif total_min < 420:
+            zhi_idx = 3  # 卯 5-7
+        elif total_min < 540:
+            zhi_idx = 4  # 辰 7-9
+        elif total_min < 660:
+            zhi_idx = 5  # 巳 9-11
+        elif total_min < 780:
+            zhi_idx = 6  # 午 11-13
+        elif total_min < 900:
+            zhi_idx = 7  # 未 13-15
+        elif total_min < 1020:
+            zhi_idx = 8  # 申 15-17
+        elif total_min < 1140:
+            zhi_idx = 9  # 酉 17-19
+        elif total_min < 1260:
+            zhi_idx = 10  # 戌 19-21
+        else:
+            zhi_idx = 11  # 亥 21-23
+
+        day_gan_idx = TIAN_GAN.index(self.day_gan)
+        base_gan_idx = WU_SHU_DUN[day_gan_idx]
+        gan_idx = (base_gan_idx + zhi_idx) % 10
+        return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
+
+    # ---- 输出 ----
+
+    @property
+    def four_pillars(self) -> Dict[str, Tuple[str, str]]:
+        return {
+            "年柱": (self.year_gan, self.year_zhi),
+            "月柱": (self.month_gan, self.month_zhi),
+            "日柱": (self.day_gan, self.day_zhi),
+            "时柱": (self.hour_gan, self.hour_zhi),
+        }
+
+    @property
+    def compact(self) -> str:
+        return ' '.join(f'{g}{z}' for g, z in self.four_pillars.values())
 
 
-def get_day_gan_zhi(solar_d: date) -> Tuple[str, str]:
-    """日柱：优先查表，回退公式"""
-    global _DAY_LOOKUP
-
-    if _DAY_LOOKUP is None:
-        _DAY_LOOKUP = _load_day_lookup()
-    if _DAY_LOOKUP is not None:
-        key = solar_d.strftime('%Y-%m-%d')
-        if key in _DAY_LOOKUP:
-            return _DAY_LOOKUP[key]
-
-    # 公式法：2000-01-01 = 戊午日（干4, 支6）
-    base = date(2000, 1, 1)
-    days = (solar_d - base).days
-    gan_idx = (4 + days) % 10
-    zhi_idx = (6 + days) % 12
-    return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
-
-
-def get_hour_gan_zhi(day_gan: str, hour: int, minute: int = 0) -> Tuple[str, str]:
-    """时柱：时支（时间段）+ 时干（五鼠遁）"""
-    total_min = hour * 60 + minute
-    if total_min < 60 or total_min >= 1380:
-        zhi_idx = 0  # 子 23-1
-    elif total_min < 180:
-        zhi_idx = 1  # 丑 1-3
-    elif total_min < 300:
-        zhi_idx = 2  # 寅 3-5
-    elif total_min < 420:
-        zhi_idx = 3  # 卯 5-7
-    elif total_min < 540:
-        zhi_idx = 4  # 辰 7-9
-    elif total_min < 660:
-        zhi_idx = 5  # 巳 9-11
-    elif total_min < 780:
-        zhi_idx = 6  # 午 11-13
-    elif total_min < 900:
-        zhi_idx = 7  # 未 13-15
-    elif total_min < 1020:
-        zhi_idx = 8  # 申 15-17
-    elif total_min < 1140:
-        zhi_idx = 9  # 酉 17-19
-    elif total_min < 1260:
-        zhi_idx = 10  # 戌 19-21
-    else:
-        zhi_idx = 11  # 亥 21-23
-
-    day_gan_idx = TIAN_GAN.index(day_gan)
-    base_gan_idx = WU_SHU_DUN[day_gan_idx]
-    gan_idx = (base_gan_idx + zhi_idx) % 10
-    return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
-
+# ========== 兼容旧接口（薄封装）==========
 
 def get_four_pillars(lunar_date: LunarDate, hour: int, minute: int = 0,
                      ) -> Dict[str, Tuple[str, str]]:
-    """
-    四柱主函数 — 输入农历日期+时辰，返回四柱
-
-    参数:
-        lunar_date: lunardate.LunarDate 对象（含 year, month, day, is_leap）
-        hour:     出生小时 (0-23)
-        minute:   出生分钟 (0-59)
-    返回:
-        {"年柱": (天干, 地支), "月柱": (天干, 地支),
-         "日柱": (天干, 地支), "时柱": (天干, 地支)}
-    """
-    # 1. 年柱 — 直接取农历年份
-    year_gan, year_zhi = get_year_gan_zhi(lunar_date)
-
-    # 月柱、日柱需要公历日期（节气判断 + 日干支查表）
-    solar_d = lunar_date.toSolarDate()
-
-    # 2. 月柱
-    month_gan, month_zhi = get_month_gan_zhi(year_gan, solar_d)
-
-    # 3. 日柱
-    day_gan, day_zhi = get_day_gan_zhi(solar_d)
-
-    # 4. 时柱
-    hour_gan, hour_zhi = get_hour_gan_zhi(day_gan, hour, minute)
-
-    return {
-        "年柱": (year_gan, year_zhi),
-        "月柱": (month_gan, month_zhi),
-        "日柱": (day_gan, day_zhi),
-        "时柱": (hour_gan, hour_zhi),
-    }
+    """四柱（兼容旧调用方式）"""
+    return BaZi(lunar_date, hour, minute).four_pillars
 
 
 def get_four_pillars_compact(lunar_date: LunarDate, hour: int, minute: int = 0) -> str:
-    """返回紧凑字符串，如 '己巳 丁卯 丁未 辛亥'"""
-    p = get_four_pillars(lunar_date, hour, minute)
-    return ' '.join(f'{g}{z}' for g, z in p.values())
+    """紧凑字符串（兼容旧调用方式）"""
+    return BaZi(lunar_date, hour, minute).compact
 
 
 # ========== 演示 ==========
 if __name__ == '__main__':
-    # 测试用例：用农历日期直接构造
     test_cases = [
-        # (LunarDate, hour, minute)
         (LunarDate(year=1992, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1930, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1929, month=5, day=25, isLeapMonth=False), 11, 30),
@@ -233,6 +230,6 @@ if __name__ == '__main__':
     print(f"{'农历日期':<22} → 年柱    月柱    日柱    时柱")
     print("-" * 60)
     for ld, h, m in test_cases:
-        result = get_four_pillars_compact(ld, h, m)
+        bz = BaZi(ld, h, m)
         label = f"{ld.year:04d}-{ld.month:02d}-{ld.day:02d}"
-        print(f"{label:<22} → {result}")
+        print(f"{label:<22} → {bz.compact}")
