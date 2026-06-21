@@ -306,24 +306,6 @@ def get_four_pillars_compact(lunar_date: LunarDate, hour: int, minute: int = 0) 
 if __name__ == '__main__':
     test_cases = [
         (LunarDate(year=1998, month=11, day=17, isLeapMonth=False), 16, 00),
-
-        (LunarDate(year=1992, month=2, day=28, isLeapMonth=False), 4, 0),
-        (LunarDate(year=1930, month=2, day=28, isLeapMonth=False), 4, 0),
-        (LunarDate(year=1929, month=5, day=25, isLeapMonth=False), 11, 30),
-        (LunarDate(year=1950, month=4, day=27, isLeapMonth=False), 8, 30),
-        (LunarDate(year=1993, month=7, day=27, isLeapMonth=False), 0, 0),
-
-        (LunarDate(year=1946, month=9, day=6, isLeapMonth=False), 0, 0),
-        (LunarDate(year=1969, month=9, day=22, isLeapMonth=False), 4, 0),
-        (LunarDate(year=1967, month=1, day=5, isLeapMonth=False), 11, 30),
-        (LunarDate(year=1973, month=3, day=22, isLeapMonth=False), 8, 30),
-        (LunarDate(year=1976, month=3, day=8, isLeapMonth=False), 20, 30),
-
-        (LunarDate(year=1998, month=11, day=17, isLeapMonth=False), 16, 00),
-        (LunarDate(year=2005, month=2, day=2, isLeapMonth=False), 11, 30),
-        (LunarDate(year=2005, month=6, day=3, isLeapMonth=False), 18, 30),
-        (LunarDate(year=2010, month=5, day=28, isLeapMonth=False), 7, 30),
-        (LunarDate(year=2005, month=2, day=7, isLeapMonth=False), 11, 30),
     ]
 
     print(f"{'农历日期':<22} → 年柱    月柱    日柱    时柱")
