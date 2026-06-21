@@ -8,8 +8,8 @@
 
 import csv
 import os
-from datetime import date
-from typing import Tuple, Dict, Optional
+from datetime import date, datetime
+from typing import Tuple, Dict, Optional, List
 
 from lunardate import LunarDate
 
@@ -25,37 +25,40 @@ WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 # 五鼠遁：甲己日→子时天干=甲(0)，乙庚日→子时天干=丙(2) ...
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
 
-# ========== 24节气 & 日柱缓存（模块级，所有实例共享）==========
-JIEQI_FILE = os.path.join(os.path.dirname(__file__), '二十四节气.csv')
-_JIE_LOOKUP: Optional[dict] = None
+# ========== 12节（月支分界点）==========
+# (名称, 典型月, 典型日, 最早日, 最晚日)
+# 对应地支索引 = (序号 + 1) % 12
+JIE_TABLE = [
+    ("小寒", 1, 5, 4, 6),  # → 丑(1)
+    ("立春", 2, 4, 3, 5),  # → 寅(2)
+    ("惊蛰", 3, 5, 5, 6),  # → 卯(3)
+    ("清明", 4, 5, 4, 6),  # → 辰(4)
+    ("立夏", 5, 6, 5, 7),  # → 巳(5)
+    ("芒种", 6, 6, 5, 7),  # → 午(6)
+    ("小暑", 7, 7, 6, 8),  # → 未(7)
+    ("立秋", 8, 8, 7, 9),  # → 申(8)
+    ("白露", 9, 8, 7, 9),  # → 酉(9)
+    ("寒露", 10, 8, 7, 9),  # → 戌(10)
+    ("立冬", 11, 8, 7, 9),  # → 亥(11)
+    ("大雪", 12, 7, 6, 8),  # → 子(0)
+]
+
+JIE_TABLE2: List[str] = [
+    "小寒1月4,5,6",
+    "立春2月3,4,5",
+    "惊蛰3月5,6",
+    "清明4月4,5,6",
+    "立夏5月5,6,7",
+    "芒种6月5,6,7",
+]
+# ========== 缓存 ==========
 _DAY_LOOKUP: Optional[dict] = None
+# 用户运行期间输入的节气精确时间，避免重复询问
+# {year: {节名称: (month, day, hour, minute)}}
+_TERM_CACHE: dict = {}
 
 
-def _load_jie_lookup() -> dict:
-    """加载节气日值表，返回 {年份: [(月, 日)*12]}"""
-    lookup = {}
-    with open(JIEQI_FILE, 'r', encoding='utf-8') as f:
-        for row in csv.reader(f):
-            if len(row) != 25:
-                continue
-            vals = [int(x) for x in row]
-            year = vals[-1]
-            # 取偶数索引（0,2,4,...,22）作为12个"节"的日值
-            days = [vals[i] for i in range(0, 24, 2)]
-            lookup[year] = [(m + 1, days[m]) for m in range(12)]
-    return lookup
-
-
-def _get_jie_dates(year: int) -> list:
-    """根据年份查找对应的12节日期 [(月, 日), ...]"""
-    global _JIE_LOOKUP
-    if _JIE_LOOKUP is None:
-        _JIE_LOOKUP = _load_jie_lookup()
-    if year in _JIE_LOOKUP:
-        return _JIE_LOOKUP[year]
-    nearest = min(_JIE_LOOKUP.keys(), key=lambda y: abs(y - year))
-    return _JIE_LOOKUP[nearest]
-
+# ========== 日柱查表 ==========
 
 def _load_day_lookup() -> Optional[dict]:
     """加载日柱查表CSV"""
@@ -87,24 +90,76 @@ class BaZi:
         self.hour = hour
         self.minute = minute
 
-        # ---- 四柱计算，结果存为实例属性 ----
-        self.year_gan, self.year_zhi = self._calc_year()
-
-        # 月柱、日柱需要公历日期
+        # 先转公历，年柱/月柱需要公历+节气判断
         self.solar_date = lunar_date.toSolarDate()
 
+        # ---- 四柱计算，结果存为实例属性 ----
+        self.year_gan, self.year_zhi = self._calc_year()
         self.month_gan, self.month_zhi = self._calc_month()
         self.day_gan, self.day_zhi = self._calc_day()
         self.hour_gan, self.hour_zhi = self._calc_hour()
 
-    # ---- 年柱 ----
+    # ---- 年柱（以立春为界）----
 
     def _calc_year(self) -> Tuple[str, str]:
-        gan_idx = (self.lunar_date.year - 4) % 10
-        zhi_idx = (self.lunar_date.year - 4) % 12
+        """以立春（2月3~5日）为界定年柱，远离立春则自动判断"""
+        m, d = self.solar_date.month, self.solar_date.day
+
+        # 1) 远在立春月之前 → 肯定是前一年
+        if m < 2:
+            actual_year = self.solar_date.year - 1
+            print(f"  ℹ️ 出生 {self.solar_date} 在立春月(2月)之前 → 年柱用前一年\n")
+        # 2) 远在立春月之后 → 肯定是当年
+        elif m > 2:
+            actual_year = self.solar_date.year
+            print(f"  ℹ️ 出生 {self.solar_date} 在立春月(2月)之后 → 年柱用当年\n")
+        else:
+            # m == 2：看是否在立春模糊范围(2/3~2/5)内
+            if d < 3:
+                actual_year = self.solar_date.year - 1
+                print(f"  ℹ️ 出生 {self.solar_date} 在立春(2/3~5)之前 → 年柱用前一年\n")
+            elif d > 5:
+                actual_year = self.solar_date.year
+                print(f"  ℹ️ 出生 {self.solar_date} 在立春(2/3~5)之后 → 年柱用当年\n")
+            else:
+                # 3) 落在模糊范围 → 交互式输入
+                actual_year = self._ask_lichun()
+
+        gan_idx = (actual_year - 4) % 10
+        zhi_idx = (actual_year - 4) % 12
         return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
 
-    # ---- 月柱 ----
+    def _ask_lichun(self) -> int:
+        """交互式输入立春精确时间，判断出生在其前/后，返回实际年份"""
+        year = self.solar_date.year
+        cached = _TERM_CACHE.get(year, {}).get("立春")
+        if cached is not None:
+            m, d, h, mi = cached
+        else:
+            print(f"\n⚠️ 出生日期 {self.solar_date} 接近立春，需确认是否已过。")
+            inp = input(f"  请输入{year}年立春的月 日 时 分（空格分隔，如 2 4 4 1）: ").strip()
+            parts = list(map(int, inp.split()))
+            if len(parts) < 4:
+                print("  ❌ 格式错误，用典型日期 2月4日 0时判断。")
+                m, d, h, mi = 2, 4, 0, 0
+            else:
+                m, d, h, mi = parts
+            _TERM_CACHE.setdefault(year, {})["立春"] = (m, d, h, mi)
+
+        lichun_dt = datetime(year, m, d, h, mi)
+        birth_dt = datetime(year, self.solar_date.month, self.solar_date.day,
+                            self.hour, self.minute)
+
+        if birth_dt < lichun_dt:
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
+                  f" 在立春 {lichun_dt} 之前 → 年柱用前一年\n")
+            return year - 1
+        else:
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
+                  f" 在立春 {lichun_dt} 之后 → 年柱用当年\n")
+            return year
+
+    # ---- 月柱（以12节为界）----
 
     def _calc_month(self) -> Tuple[str, str]:
         month_zhi = self._get_month_zhi()
@@ -115,15 +170,55 @@ class BaZi:
         return month_gan, month_zhi
 
     def _get_month_zhi(self) -> str:
-        """按月+日判断月支（按节气）"""
-        dates = _get_jie_dates(self.solar_date.year)
+        """按公历月+日判断月支（按12节，遇模糊日期交互式查询）"""
         m, d = self.solar_date.month, self.solar_date.day
+
+        # 1) 检查是否落在某节的模糊范围内
+        for i, (name, tm, _, min_d, max_d) in enumerate(JIE_TABLE):
+            if m == tm and min_d <= d <= max_d:
+                return self._ask_jie(i)
+
+        # 2) 不在模糊范围，用典型日期直接判断
         for i in range(12):
-            cur_m, cur_d = dates[i]
-            next_m, next_d = dates[(i + 1) % 12]
+            cur_m, cur_d = JIE_TABLE[i][1], JIE_TABLE[i][2]
+            next_m, next_d = JIE_TABLE[(i + 1) % 12][1], JIE_TABLE[(i + 1) % 12][2]
             if (m == cur_m and d >= cur_d) or (m == next_m and d < next_d):
-                return DI_ZHI[i]
-        return DI_ZHI[0]
+                return DI_ZHI[(i + 1) % 12]
+        return DI_ZHI[1]
+
+    def _ask_jie(self, jie_idx: int) -> str:
+        """交互式输入某节的精确时间，判断出生在其前/后"""
+        name, tm, td, _, _ = JIE_TABLE[jie_idx]
+        year = self.solar_date.year
+
+        # 立春可能已被年柱问过，直接复用缓存
+        cached = _TERM_CACHE.get(year, {}).get(name)
+        if cached is not None:
+            m, d, h, mi = cached
+        else:
+            print(f"\n⚠️ 出生日期 {self.solar_date} 接近{name}，需确认是否已过该节气。")
+            inp = input(f"  请输入{year}年{name}的月 日 时 分（空格分隔，如 {tm} {td} 0 0）: ").strip()
+            parts = list(map(int, inp.split()))
+            if len(parts) < 4:
+                print(f"  ❌ 格式错误，用典型日期 {tm}月{td}日 0时判断。")
+                m, d, h, mi = tm, td, 0, 0
+            else:
+                m, d, h, mi = parts
+            _TERM_CACHE.setdefault(year, {})[name] = (m, d, h, mi)
+
+        jie_dt = datetime(year, m, d, h, mi)
+        birth_dt = datetime(year, self.solar_date.month, self.solar_date.day,
+                            self.hour, self.minute)
+
+        if birth_dt < jie_dt:
+            result = DI_ZHI[jie_idx % 12]
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
+                  f" 在{name} {jie_dt} 之前 → 月支 {result}\n")
+        else:
+            result = DI_ZHI[(jie_idx + 1) % 12]
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
+                  f" 在{name} {jie_dt} 之后 → 月支 {result}\n")
+        return result
 
     # ---- 日柱 ----
 
@@ -146,7 +241,7 @@ class BaZi:
 
     def _calc_hour(self) -> Tuple[str, str]:
         total_min = self.hour * 60 + self.minute
-        if total_min < 60 or total_min >= 1380:
+        if total_min < 60 or total_min >= 1380:  # 1380为23小时整
             zhi_idx = 0  # 子 23-1
         elif total_min < 180:
             zhi_idx = 1  # 丑 1-3
@@ -208,6 +303,8 @@ def get_four_pillars_compact(lunar_date: LunarDate, hour: int, minute: int = 0) 
 # ========== 演示 ==========
 if __name__ == '__main__':
     test_cases = [
+        (LunarDate(year=1998, month=11, day=17, isLeapMonth=False), 16, 00),
+
         (LunarDate(year=1992, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1930, month=2, day=28, isLeapMonth=False), 4, 0),
         (LunarDate(year=1929, month=5, day=25, isLeapMonth=False), 11, 30),
@@ -233,3 +330,18 @@ if __name__ == '__main__':
         bz = BaZi(ld, h, m)
         label = f"{ld.year:04d}-{ld.month:02d}-{ld.day:02d}"
         print(f"{label:<22} → {bz.compact}")
+
+# 24节气常见日期范围（参考）：
+#   小寒 1/4-6   大寒 1/19-21
+#   立春 2/3-5   雨水 2/18-20
+#   惊蛰 3/5-6   春分 3/20-22
+#   清明 4/4-6   谷雨 4/19-21
+#   立夏 5/5-7   小满 5/20-22
+#   芒种 6/5-7   夏至 6/21-22
+#   小暑 7/6-8   大暑 7/22-24
+#   立秋 8/7-9   处暑 8/22-24
+#   白露 9/7-9   秋分 9/22-24
+#   寒露 10/7-9  霜降 10/22-24
+#   立冬 11/7-9  小雪 11/22-23
+#   大雪 12/6-8  冬至 12/21-23
+# （带下划线的为12"节"，用于定月支）
