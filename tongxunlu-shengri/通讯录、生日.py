@@ -1,6 +1,5 @@
 import calendar
 import csv
-import json
 import os
 import os.path
 import platform
@@ -57,32 +56,6 @@ if ps == "darwin":  # macOS
     file_path = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/联系人.txt"
     out_csv_file = "/Users/wangxiao/Downloads/contact.csv"
     schedule_ics = "/Users/wangxiao/Downloads/schedule.ics"
-
-# 生辰.json 路径
-SHENGCHEN_JSON = "/Users/wangxiao/Nutstore Files/我的坚果云/我的文档/个人/生辰.json"
-_SHENGCHEN_DATA = None
-
-
-def load_shengchen() -> dict:
-    """加载生辰.json，返回 {姓名: {key: value}} 格式"""
-    global _SHENGCHEN_DATA
-    if _SHENGCHEN_DATA is not None:
-        return _SHENGCHEN_DATA
-    if not os.path.exists(SHENGCHEN_JSON):
-        print(f"⚠️ 未找到生辰.json: {SHENGCHEN_JSON}")
-        _SHENGCHEN_DATA = {}
-        return _SHENGCHEN_DATA
-    with open(SHENGCHEN_JSON, 'r', encoding='utf-8') as f:
-        raw = json.load(f)
-    result = {}
-    for name, entries in raw.items():
-        info = {}
-        for entry in entries:
-            info.update(entry)
-        result[name] = info
-    _SHENGCHEN_DATA = result
-    return result
-
 
 google_csv_title: List[str] = [
     "Name Prefix", "First Name", "Middle Name", "Last Name", "Name Suffix",
@@ -545,21 +518,6 @@ class Handle:
             person.birth = withdraw(items, "生日：")
             person.memorial = withdraw(items, "纪念日：")
             person.notes = withdraw(items, "备注：")
-
-            # 从生辰.json 追加信息到备注
-            shengchen = load_shengchen()
-            if person.name in shengchen:
-                parts = []
-                for k, v in shengchen[person.name].items():
-                    if v.strip():
-                        parts.append(f"{k}：{v.strip()}")
-                if parts:
-                    extra = "。".join(parts)
-                    if person.notes:
-                        person.notes += "。" + extra
-                    else:
-                        person.notes = extra
-
             persons.append(person)
 
         return persons

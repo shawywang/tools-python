@@ -7,6 +7,8 @@
 
 import csv
 import os
+import re
+import sys
 from datetime import date, datetime, timedelta
 from typing import Tuple, Dict, Optional
 
@@ -113,9 +115,9 @@ class BaZi:
         self.day_gan, self.day_zhi = self._calc_day()
         self.hour_gan, self.hour_zhi = self._calc_hour()
 
-        # 子时边界(23:00~23:59)特殊处理
+        # 子时边界(23:00~24:00)特殊处理
         total_min = hour * 60 + minute
-        if 1380 <= total_min < 1440:
+        if (1380 <= total_min < 1440) or total_min == 0:
             self._compute_zishi_variants()
 
     # ---- 年柱（以立春为界）----
@@ -148,7 +150,7 @@ class BaZi:
             m, d, h, mi = cached
         else:
             print("https://dijizhou.100xgj.com/jieqibiao/1999")
-            print(f"\n⚠️ 出生日期 {self.solar_date} 接近{term_name}，需确认是否已过。")
+            print(f"\n⚠️ 出生日期 {self.solar_date} 接近{term_name}，点击链接查询确认是否已过。")
             inp = input(f"  请输入{year}年{term_name}的月 日 时 分（空格分隔，如 {default_m} {default_d} 0 0）: ").strip()
             parts = list(map(int, inp.split()))
             if len(parts) < 4:
@@ -272,8 +274,6 @@ class BaZi:
     def _compute_zishi_variants(self):
         """23:00~23:59 子时边界特殊处理，输出3种八字"""
         total_min = self.hour * 60 + self.minute
-        if not (1380 <= total_min < 1440):
-            return
 
         yg, yz = self.year_gan, self.year_zhi
         mg, mz = self.month_gan, self.month_zhi
@@ -316,14 +316,66 @@ class BaZi:
         return ' '.join(f'{g}{z}' for g, z in self.four_pillars.values())
 
 
-# ========== 演示 ==========
-if __name__ == '__main__':
-    bz = BaZi(year=1993, month=9, day=12, hour=23, minute=45)
-    print(f" → {bz.compact}")
-    print("-" * 60)
-    bz = BaZi(year=1950, month=6, day=12, shichen="辰")
-    print(f" → {bz.compact}")
+# ========== 交互式输入 ==========
 
+def _parse_entry(entry: str) -> Optional[dict]:
+    """解析单条出生日期字符串，返回参数字典或None"""
+    m = re.search(r'(\d{4})年', entry)
+    if not m:
+        return None
+    year = int(m.group(1))
+    m = re.search(r'(\d{1,2})月', entry)
+    if not m:
+        return None
+    month = int(m.group(1))
+    rest = entry[m.end():]
+    # 先试时辰格式：如 8酉时、7戌时、9日戌时
+    m = re.search(r'^(\d+)(?:日)?([子丑寅卯辰巳午未申酉戌亥])时', rest)
+    if m:
+        return dict(year=year, month=month, day=int(m.group(1)),
+                    shichen=m.group(2))
+    # 再试时间格式：如 9日7:10
+    m = re.search(r'^(\d+)(?:日)?(\d{1,2}):(\d{1,2})', rest)
+    if m:
+        return dict(year=year, month=month, day=int(m.group(1)),
+                    hour=int(m.group(2)), minute=int(m.group(3)))
+    return None
+
+
+if __name__ == '__main__':
+    print("八字四柱计算器")
+    print("输入格式示例：")
+    print("  2005年7月8酉时、2010年7月9日7:10、1976年4月7戌时")
+    inp = input("\n请输入出生日期（多个用、隔开）：").strip()
+    if not inp:
+        print("未输入，退出。")
+        sys.exit(0)
+    # 分隔符：优先用 、，其次用 ,
+    entries = [e.strip() for e in inp.split('、') if e.strip()]
+    if len(entries) <= 1 and ',' in inp:
+        entries = [e.strip() for e in inp.split(',') if e.strip()]
+    total = len(entries)
+    for idx, e in enumerate(entries, 1):
+        print(f"\n{'=' * 50}")
+        print(f"第 {idx}/{total} 个：{e}")
+        params = _parse_entry(e)
+        if params is None:
+            print(f"  ❌ 无法解析格式，跳过。")
+            continue
+        try:
+            bz = BaZi(**params)
+            print(f"  八字 → {bz.compact}")
+            print(f"  年柱: {bz.year_gan}{bz.year_zhi}")
+            print(f"  月柱: {bz.month_gan}{bz.month_zhi}")
+            print(f"  日柱: {bz.day_gan}{bz.day_zhi}")
+            print(f"  时柱: {bz.hour_gan}{bz.hour_zhi}")
+        except Exception as ex:
+            print(f"  ❌ 计算错误: {ex}")
+    print(f"\n{'=' * 50}")
+    print(f"共计算 {total} 个八字。")
+# 查24节气具体时分：
+#   https://www.yinliyangli.com/huangli/1999/1999.24jieqi.php
+#   https://dijizhou.100xgj.com/jieqibiao/1999
 # 24节气常见日期范围（参考）：
 #   小寒 1/4-6   大寒 1/19-21
 #   立春 2/3-5   雨水 2/18-20
