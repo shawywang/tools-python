@@ -19,17 +19,25 @@ LOOKUP = os.path.join(os.path.dirname(__file__), '日柱表.csv')
 TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 DI_ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 
-# 五虎遁：甲己之年丙作首，乙庚之年戊为头，
-#         丙辛之岁寻庚上，丁壬壬寅顺水流，
-#         戊癸何方发，甲寅之上好追求。
+# 五虎遁口诀：用来求每年第一个月的天干
+# 甲己之年丙作首：每逢年干是甲或己的年份，正月的月干从丙上数起。
+# 乙庚之年戊为头：每逢年干是乙或庚的年份，正月的月干从戊上数起。
+# 丙辛之岁寻庚上：每逢年干是丙或辛的年份，正月的月干从庚上数起。
+# 丁壬壬寅顺水流：每逢年干是丁或壬的年份，正月的月干从壬上数起。
+# 若问戊癸何方发，甲寅之上好追求：每逢年干是戊或癸的年份，正月的月干从甲上数起。
 WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 
-# 五鼠遁：甲己日→子时天干=甲(0)，乙庚日→子时天干=丙(2) ...
+# 五鼠遁：求每日子时的天干
+# 甲己还加甲：凡是甲己日，时辰从甲子时开始往下推。
+# 乙庚丙作初：凡是乙庚日，时辰从丙子时开始往下推。
+# 丙辛从戊起：凡是丙辛日，时辰从戊子时开始往下推。
+# 丁壬庚子居：凡是丁壬日，时辰从庚子时开始往下推。
+# 戊癸何方发，壬子是真途：凡是戊癸日，时辰从壬子时开始往下推。
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
 
 # ========== 12节（月支分界点）==========
 # 月份与可能日期集合，顺序：小寒→立春→惊蛰→...→大雪
-JIE = [
+JIE = [  # 节气 → 哪个月支的开始
     {1.4, 1.5, 1.6},  # 小寒 → 丑
     {2.3, 2.4, 2.5},  # 立春 → 寅
     {3.5, 3.6},  # 惊蛰 → 卯
@@ -140,8 +148,7 @@ class BaZi:
             _TERM_CACHE.setdefault(year, {})["立春"] = (m, d, h, mi)
 
         lichun_dt = datetime(year, m, d, h, mi)
-        birth_dt = datetime(year, self.solar_date.month, self.solar_date.day,
-                            self.hour, self.minute)
+        birth_dt = datetime(year, self.solar_date.month, self.solar_date.day, self.hour, self.minute)
 
         if birth_dt < lichun_dt:
             print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
@@ -172,11 +179,11 @@ class BaZi:
             if key in days:
                 return self._ask_jie(i)
 
-        # 2) 不在模糊范围 → 用典型日期出判断
+        # 2) 不在模糊范围 → 用最早日期判断
         for i, days in enumerate(JIE):
-            cur = sorted(days)[len(days) // 2]  # 取中值作为典型日
+            cur = min(days)
             cur_m, cur_d = int(cur), round((cur - int(cur)) * 10)
-            nxt = sorted(JIE[(i + 1) % 12])[len(JIE[(i + 1) % 12]) // 2]
+            nxt = min(JIE[(i + 1) % 12])
             nxt_m, nxt_d = int(nxt), round((nxt - int(nxt)) * 10)
             if (m == cur_m and d >= cur_d) or (m == nxt_m and d < nxt_d):
                 return JIE_ZHI[i]
@@ -191,10 +198,8 @@ class BaZi:
         if cached is not None:
             m, d, h, mi = cached
         else:
-            # 从集合中取典型日作为提示
-            td = round((sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2]
-                        - int(sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2])) * 10)
-            tm = int(sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2])
+            v = min(JIE[jie_idx])  # 取最早日期作为提示，如 3.5 → 3月5日
+            tm, td = int(v), round((v - int(v)) * 10)
             print(f"\n⚠️ 出生日期 {self.solar_date} 接近{name}，需确认是否已过该节气。")
             inp = input(f"  请输入{year}年{name}的月 日 时 分（空格分隔，如 {tm} {td} 0 0）: ").strip()
             parts = list(map(int, inp.split()))
@@ -211,12 +216,10 @@ class BaZi:
 
         if birth_dt < jie_dt:
             result = JIE_ZHI[(jie_idx - 1) % 12]
-            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
-                  f" 在{name} {jie_dt} 之前 → 月支 {result}\n")
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}\n 在{name} {jie_dt} 之前 → 月支 {result}\n")
         else:
             result = JIE_ZHI[jie_idx]
-            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
-                  f" 在{name} {jie_dt} 之后 → 月支 {result}\n")
+            print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}\n 在{name} {jie_dt} 之后 → 月支 {result}\n")
         return result
 
     # ---- 日柱 ----
