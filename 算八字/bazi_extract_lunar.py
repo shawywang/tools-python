@@ -9,7 +9,7 @@
 import csv
 import os
 from datetime import date, datetime
-from typing import Tuple, Dict, Optional, List
+from typing import Tuple, Dict, Optional
 
 from lunardate import LunarDate
 
@@ -19,38 +19,35 @@ LOOKUP = os.path.join(os.path.dirname(__file__), '日柱表.csv')
 TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 DI_ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
 
-# 五虎遁：甲己年→寅月天干=丙(2)，乙庚年→寅月天干=戊(4) ...
+# 五虎遁：甲己之年丙作首，乙庚之年戊为头，
+#         丙辛之岁寻庚上，丁壬壬寅顺水流，
+#         戊癸何方发，甲寅之上好追求。
 WU_HU_DUN = {0: 2, 5: 2, 1: 4, 6: 4, 2: 6, 7: 6, 3: 8, 8: 8, 4: 0, 9: 0}
 
 # 五鼠遁：甲己日→子时天干=甲(0)，乙庚日→子时天干=丙(2) ...
 WU_SHU_DUN = {0: 0, 5: 0, 1: 2, 6: 2, 2: 4, 7: 4, 3: 6, 8: 6, 4: 8, 9: 8}
 
 # ========== 12节（月支分界点）==========
-# (名称, 典型月, 典型日, 最早日, 最晚日)
-# 对应地支索引 = (序号 + 1) % 12
-JIE_TABLE = [
-    ("小寒", 1, 5, 4, 6),  # → 丑(1)
-    ("立春", 2, 4, 3, 5),  # → 寅(2)
-    ("惊蛰", 3, 5, 5, 6),  # → 卯(3)
-    ("清明", 4, 5, 4, 6),  # → 辰(4)
-    ("立夏", 5, 6, 5, 7),  # → 巳(5)
-    ("芒种", 6, 6, 5, 7),  # → 午(6)
-    ("小暑", 7, 7, 6, 8),  # → 未(7)
-    ("立秋", 8, 8, 7, 9),  # → 申(8)
-    ("白露", 9, 8, 7, 9),  # → 酉(9)
-    ("寒露", 10, 8, 7, 9),  # → 戌(10)
-    ("立冬", 11, 8, 7, 9),  # → 亥(11)
-    ("大雪", 12, 7, 6, 8),  # → 子(0)
+# 月份与可能日期集合，顺序：小寒→立春→惊蛰→...→大雪
+JIE = [
+    {1.4, 1.5, 1.6},  # 小寒 → 丑
+    {2.3, 2.4, 2.5},  # 立春 → 寅
+    {3.5, 3.6},  # 惊蛰 → 卯
+    {4.4, 4.5, 4.6},  # 清明 → 辰
+    {5.5, 5.6, 5.7},  # 立夏 → 巳
+    {6.5, 6.6, 6.7},  # 芒种 → 午
+    {7.6, 7.7, 7.8},  # 小暑 → 未
+    {8.7, 8.8, 8.9},  # 立秋 → 申
+    {9.7, 9.8, 9.9},  # 白露 → 酉
+    {10.7, 10.8, 10.9},  # 寒露 → 戌
+    {11.7, 11.8, 11.9},  # 立冬 → 亥
+    {12.6, 12.7, 12.8},  # 大雪 → 子
 ]
 
-JIE_TABLE2: List[str] = [
-    "小寒1月4,5,6",
-    "立春2月3,4,5",
-    "惊蛰3月5,6",
-    "清明4月4,5,6",
-    "立夏5月5,6,7",
-    "芒种6月5,6,7",
-]
+# 各节名称与对应地支（与JIE顺序一致）
+JIE_MING = ["小寒", "立春", "惊蛰", "清明", "立夏", "芒种", "小暑", "立秋", "白露", "寒露", "立冬", "大雪"]
+JIE_ZHI = ["丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子"]
+
 # ========== 缓存 ==========
 _DAY_LOOKUP: Optional[dict] = None
 # 用户运行期间输入的节气精确时间，避免重复询问
@@ -105,16 +102,13 @@ class BaZi:
         """以立春（2月3~5日）为界定年柱，远离立春则自动判断"""
         m, d = self.solar_date.month, self.solar_date.day
 
-        # 1) 远在立春月之前 → 肯定是前一年
         if m < 2:
             actual_year = self.solar_date.year - 1
             print(f"  ℹ️ 出生 {self.solar_date} 在立春月(2月)之前 → 年柱用前一年\n")
-        # 2) 远在立春月之后 → 肯定是当年
         elif m > 2:
             actual_year = self.solar_date.year
             print(f"  ℹ️ 出生 {self.solar_date} 在立春月(2月)之后 → 年柱用当年\n")
         else:
-            # m == 2：看是否在立春模糊范围(2/3~2/5)内
             if d < 3:
                 actual_year = self.solar_date.year - 1
                 print(f"  ℹ️ 出生 {self.solar_date} 在立春(2/3~5)之前 → 年柱用前一年\n")
@@ -122,7 +116,6 @@ class BaZi:
                 actual_year = self.solar_date.year
                 print(f"  ℹ️ 出生 {self.solar_date} 在立春(2/3~5)之后 → 年柱用当年\n")
             else:
-                # 3) 落在模糊范围 → 交互式输入
                 actual_year = self._ask_lichun()
 
         gan_idx = (actual_year - 4) % 10
@@ -130,7 +123,7 @@ class BaZi:
         return TIAN_GAN[gan_idx], DI_ZHI[zhi_idx]
 
     def _ask_lichun(self) -> int:
-        """交互式输入立春精确时间，判断出生在其前/后，返回实际年份"""
+        """交互式输入立春精确时间，返回实际年份"""
         year = self.solar_date.year
         cached = _TERM_CACHE.get(year, {}).get("立春")
         if cached is not None:
@@ -172,30 +165,36 @@ class BaZi:
     def _get_month_zhi(self) -> str:
         """按公历月+日判断月支（按12节，遇模糊日期交互式查询）"""
         m, d = self.solar_date.month, self.solar_date.day
+        key = float(f"{m}.{d}")
 
-        # 1) 检查是否落在某节的模糊范围内
-        for i, (name, tm, _, min_d, max_d) in enumerate(JIE_TABLE):
-            if m == tm and min_d <= d <= max_d:
+        # 1) 是否在某个节的模糊日期内
+        for i, days in enumerate(JIE):
+            if key in days:
                 return self._ask_jie(i)
 
-        # 2) 不在模糊范围，用典型日期直接判断
-        for i in range(12):
-            cur_m, cur_d = JIE_TABLE[i][1], JIE_TABLE[i][2]
-            next_m, next_d = JIE_TABLE[(i + 1) % 12][1], JIE_TABLE[(i + 1) % 12][2]
-            if (m == cur_m and d >= cur_d) or (m == next_m and d < next_d):
-                return DI_ZHI[(i + 1) % 12]
-        return DI_ZHI[1]
+        # 2) 不在模糊范围 → 用典型日期出判断
+        for i, days in enumerate(JIE):
+            cur = sorted(days)[len(days) // 2]  # 取中值作为典型日
+            cur_m, cur_d = int(cur), round((cur - int(cur)) * 10)
+            nxt = sorted(JIE[(i + 1) % 12])[len(JIE[(i + 1) % 12]) // 2]
+            nxt_m, nxt_d = int(nxt), round((nxt - int(nxt)) * 10)
+            if (m == cur_m and d >= cur_d) or (m == nxt_m and d < nxt_d):
+                return JIE_ZHI[i]
+        return JIE_ZHI[0]
 
     def _ask_jie(self, jie_idx: int) -> str:
         """交互式输入某节的精确时间，判断出生在其前/后"""
-        name, tm, td, _, _ = JIE_TABLE[jie_idx]
+        name = JIE_MING[jie_idx]
         year = self.solar_date.year
 
-        # 立春可能已被年柱问过，直接复用缓存
         cached = _TERM_CACHE.get(year, {}).get(name)
         if cached is not None:
             m, d, h, mi = cached
         else:
+            # 从集合中取典型日作为提示
+            td = round((sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2]
+                        - int(sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2])) * 10)
+            tm = int(sorted(JIE[jie_idx])[len(JIE[jie_idx]) // 2])
             print(f"\n⚠️ 出生日期 {self.solar_date} 接近{name}，需确认是否已过该节气。")
             inp = input(f"  请输入{year}年{name}的月 日 时 分（空格分隔，如 {tm} {td} 0 0）: ").strip()
             parts = list(map(int, inp.split()))
@@ -211,11 +210,11 @@ class BaZi:
                             self.hour, self.minute)
 
         if birth_dt < jie_dt:
-            result = DI_ZHI[jie_idx % 12]
+            result = JIE_ZHI[(jie_idx - 1) % 12]
             print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
                   f" 在{name} {jie_dt} 之前 → 月支 {result}\n")
         else:
-            result = DI_ZHI[(jie_idx + 1) % 12]
+            result = JIE_ZHI[jie_idx]
             print(f"  ℹ️ 出生 {self.solar_date} {self.hour:02d}:{self.minute:02d}"
                   f" 在{name} {jie_dt} 之后 → 月支 {result}\n")
         return result
