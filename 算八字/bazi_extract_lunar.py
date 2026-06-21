@@ -147,6 +147,7 @@ class BaZi:
         if cached is not None:
             m, d, h, mi = cached
         else:
+            print("https://dijizhou.100xgj.com/jieqibiao/1999")
             print(f"\n⚠️ 出生日期 {self.solar_date} 接近{term_name}，需确认是否已过。")
             inp = input(f"  请输入{year}年{term_name}的月 日 时 分（空格分隔，如 {default_m} {default_d} 0 0）: ").strip()
             parts = list(map(int, inp.split()))
@@ -294,10 +295,10 @@ class BaZi:
         v3_hz = DI_ZHI[0]  # 子时
 
         ts = f"{self.hour:02d}:{self.minute:02d}"
-        print(f"\n⚠️ 出生时间 {ts} 处于子时(23~1点)的23~24交界，特殊处理得3个八字：")
-        print(f"  第一种，23~24算次日，日时都变：{yg}{yz} {mg}{mz} {v1_dg}{v1_dz} {v1_hg}{v1_hz}")
-        print(f"  第二种（通常建议），23~24同当日0~1，日时都不变：{yg}{yz} {mg}{mz} {dg}{dz} {v2_hg}{v2_hz}")
-        print(f"  第三种，9~11的时干，再往后数一个天干作为时干，只变时柱：{yg}{yz} {mg}{mz} {dg}{dz} {v3_hg}{v3_hz}\n")
+        print(f"\n⚠️ 出生时间 {ts} 处于子时(23~1点)的23~24交界，特殊处理3个八字：")
+        print(f"  第一种，23~24算次日，日时都变：\n\t{yg}{yz} {mg}{mz} {v1_dg}{v1_dz} {v1_hg}{v1_hz}")
+        print(f"  第二种（通常建议），23~24同当日0~1，日时都不变：\n\t{yg}{yz} {mg}{mz} {dg}{dz} {v2_hg}{v2_hz}")
+        print(f"  第三种，9~11的时干，再往后数一个天干作为时干，只变时柱：\n\t{yg}{yz} {mg}{mz} {dg}{dz} {v3_hg}{v3_hz}\n")
 
     # ---- 输出 ----
 
@@ -317,18 +318,11 @@ class BaZi:
 
 # ========== 演示 ==========
 if __name__ == '__main__':
-    test_cases = [
-        (2026, 5, 2, 23, 1),  # 子时边界
-        (2026, 5, 2, 8, 0),  # 辰时
-        (2026, 3, 7, 12, 0),  # 普通
-    ]
-
-    print(f"{'公历日期':<20} → 年柱    月柱    日柱    时柱")
+    bz = BaZi(year=1993, month=9, day=12, hour=23, minute=45)
+    print(f" → {bz.compact}")
     print("-" * 60)
-    for y, mo, d, h, mi in test_cases:
-        bz = BaZi(y, mo, d, h, mi)
-        label = f"{y:04d}-{mo:02d}-{d:02d}"
-        print(f"{label:<20} → {bz.compact}")
+    bz = BaZi(year=1950, month=6, day=12, shichen="辰")
+    print(f" → {bz.compact}")
 
 # 24节气常见日期范围（参考）：
 #   小寒 1/4-6   大寒 1/19-21
