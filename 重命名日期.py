@@ -268,7 +268,7 @@ def main():
     elif ps == "linux":
         dir: str = ""
     elif ps == "darwin":  # macOS
-        dir: str = "/Users/wangxiao/Downloads"
+        dir: str = "/Users/wangxiao/Downloads/临时"
         # dir: str = "/Volumes/RTL9210/6/手机3/别人的"
     else:
         dir: str = ""
