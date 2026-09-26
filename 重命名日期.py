@@ -264,7 +264,7 @@ class Handle:
 def main():
     h = Handle()
     if ps == "windows":
-        dir: str = r"C:\Users\wangxiao\Downloads"
+        dir: str = r"C:\Users\wangxiao\Downloads\临时"
     elif ps == "linux":
         dir: str = ""
     elif ps == "darwin":  # macOS
