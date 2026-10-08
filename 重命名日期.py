@@ -160,7 +160,7 @@ def get_datetime_from_file_sys(directory, filename: str):
     stat = os.stat(os.path.join(directory, filename))
     mod_time = datetime.fromtimestamp(stat.st_mtime)  # 最后修改时间
     if ps == "windows":
-        create_time = datetime.fromtimestamp(stat.st_ctime)
+        create_time = datetime.fromtimestamp(stat.st_atime)
     else:
         create_time = datetime.fromtimestamp(stat.st_birthtime)
     fi_t = create_time if create_time < mod_time else mod_time
