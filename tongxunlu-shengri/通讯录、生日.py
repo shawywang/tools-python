@@ -17,6 +17,20 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from ics import Calendar, Event
 
+"""
+请问.csv和.vCard有什么区别？对于这个项目来说：/Users/wangxiao/Documents/github/t
+ools-python/tongxunlu-shengri，生成了/Users/wangxiao/Downloads/contact.csv和/Use
+rs/wangxiao/Downloads/schedule.ics，我之前是用以生成.csv导入到谷歌联系人app中去
+的，我本地只需要维护一个.txt，偶尔执行一下这个程序，拿最新的.csv和.ics去谷歌联系
+人和谷歌日历刷新一次就好了，方便换手机迁移迁移，维护负担小，不用手打联系人一个一
+个添加。现在我遇到的问题是，我换用了华为手机，它使用vCard文件导入联系人，不识别.
+csv了，我不得不重新开始尝试基于原始txt信息去生成vCard并多次导入反馈效果再改进逻
+辑，这也是我现在想让你做的事。你从“/Users/wangxiao/Nutstore 
+Files/我的坚果云/我的文档/个人/联系人.txt”中随便选取几个有代表性的元数据，只生成
+vCard（先忽略生日部分逻辑，我现在最重要的是先把联系人导入进去，日历app以后再说）
+，不要改原来的代码，在同文件夹下写新的脚本，最终生成vCard，我拿你给我的vCard去手
+机上尝试并给你反馈
+"""
 # C:\ProgramData\miniconda3\python.exe -m pip install --upgrade pip
 # C:\ProgramData\miniconda3\python.exe -m pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client dotenv lunardate
 # /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 -m pip install --upgrade pip
